@@ -228,6 +228,22 @@
       navAccessoires: "Accessoires",
       navWaarom: "Waarom CraftKamado?",
       navReviews: "Ervaringen",
+      navFaq: "FAQ",
+      footerLinkFaq: "Veelgestelde Vragen (FAQ)",
+      faqSectionTag: "Kennisbank & Antwoorden",
+      faqSectionTitle: "Veelgestelde Vragen over de Kamado BBQ",
+      faqSectionDesc: "Alles wat je moet weten over het kiezen, grillen en onderhouden van jouw CraftKamado keramische barbecue.",
+      faqQ1: "Wat maakt een keramische kamado barbecue superieur aan een gewone barbecue?",
+      faqA1: "Een keramische kamado BBQ is gemaakt van extra dik, hittebestendig Mullite keramiek (circa 3 cm dik). Deze enorme thermische massa houdt hitte en vocht ongeëvenaard goed vast in de kookkamer. Waar een traditionele stalen barbecue het vlees snel uitdroogt door tochtige luchtstromen, blijft bij een CraftKamado tot wel 40% meer vleessap behouden. Bovendien verbruik je tot 30% minder houtskool en kun je met één lading kwaliteits-houtskool tot wel 24 uur continu koken op 110°C (low & slow), of temperaturen bereiken tot 400°C voor authentieke steenovens pizza's en knapperige steaks.",
+      faqQ2: "Welke kamado maat (18, 21, 23 of 27 inch) is het meest geschikt voor mij?",
+      faqA2: "<p>De juiste maat hangt af van jouw huishouden en kookstijl:</p><ul><li><strong>18″ Basic & Premium:</strong> Ideaal voor balkons, stadstuinen en gezinnen van 2 tot 4 personen. Compact en snel op temperatuur.</li><li><strong>21″ Veelzijdig:</strong> Perfect voor gezinnen van 4 tot 6 personen die graag gerechten tegelijkertijd direct en indirect bereiden.</li><li><strong>23″ Bestseller:</strong> De populairste maat in Nederland! Geschikt voor 6 tot 10 personen. Ruim genoeg voor meerdere hele kippen, meerdere ribbenrekken of grote briskets en een volwaardige pizzasteen.</li><li><strong>27″ HoReCa Reus:</strong> De ultieme barbecue voor grote tuinen, professionele horeca en buitenkeukens waar grote gezelschappen tegelijk bediend worden.</li></ul>",
+      faqQ3: "Wat zit er standaard inbegrepen in het CraftKamado All-Inclusive pakket?",
+      faqA3: "<p>Bij ons hoef je geen honderden euro's aan essentiële accessoires bij te kopen. Elke CraftKamado wordt 100% compleet geleverd met:</p><ul><li>Gepatenteerd gewichtsloos <strong>Air Hinge veerscharnier</strong> (deksel blijft veilig zweven op elke gewenste stand).</li><li>Meerlaags <strong>Divide & Conquer kooksysteem</strong> met halve roosters en deflectorstenen.</li><li>Zwaar <strong>gietijzeren halve maan rooster</strong> voor perfecte grillstrepen.</li><li>Uitschuifbare <strong>RVS aslade & as-tool</strong> voor schoonmaken zonder stof.</li><li>Geïntegreerde <strong>rookhout toevoerpoort</strong> (houtsnippers toevoegen zonder het deksel te openen).</li><li>Zware <strong>waterdichte beschermhoes op maat</strong> met UV-coating.</li><li>Gepoedercoat <strong>stalen onderstel met 4 industriële zwenkwielen</strong> (waarvan 2 geremd).</li><li>Inklapbare <strong>natuurlijke bamboe zijtafels</strong> met handige gereedschapshaken.</li></ul>",
+      faqQ4: "Hoe verloopt de bezorging en palletlevering in Nederland?",
+      faqA4: "Alle kamado's worden <strong>gratis en volledig verzekerd</strong> op een speciale transportpallet geleverd door onze gespecialiseerde Nederlandse palletvervoerder. Vooraf ontvang je een track & trace code en wordt er telefonisch of via sms contact opgenomen om het bezorgmoment af te stemmen. De chauffeur plaatst de pallet veilig met een pompwagen bij jouw voordeur, op de oprit of achterom.",
+      faqQ5: "Kan de keramische kamado het hele jaar door buiten blijven staan in de Nederlandse winter?",
+      faqA5: "Ja, de CraftKamado is speciaal ontwikkeld voor het wisselvallige Noord-Europese klimaat. Het hoogwaardige Mullite keramiek en het roestvaste geglazuurde oppervlak zijn ongevoelig voor vorst, regen en sneeuw. Wij adviseren om de meegeleverde zware beschermhoes te gebruiken wanneer je de kamado niet gebruikt, zodat metalen onderdelen en bamboe tafels in topconditie blijven.",
+
       cartTriggerText: "Winkelwagen",
       heroTitle: "Keramisch Meesterschap.<br><span class=\"highlight\">All-Inclusive</span> Geleverd.",
       heroSubtitle: "Geen verborgen kosten, geen losse accessoires bijkopen. CraftKamado levert de meest complete keramische barbecue van Nederland, vervaardigd uit zwaar Mullite keramiek met gepatenteerd Air Hinge scharnier.",
@@ -359,6 +375,22 @@
       navAccessoires: "Accessories",
       navWaarom: "Why CraftKamado?",
       navReviews: "Reviews",
+      navFaq: "FAQ",
+      footerLinkFaq: "Frequently Asked Questions (FAQ)",
+      faqSectionTag: "Knowledge Base & FAQ",
+      faqSectionTitle: "Frequently Asked Questions About Kamado BBQ",
+      faqSectionDesc: "Everything you need to know about choosing, grilling and maintaining your CraftKamado ceramic barbecue grill.",
+      faqQ1: "What makes a ceramic kamado barbecue superior to a standard grill?",
+      faqA1: "A ceramic kamado BBQ is crafted from heavy-duty, heat-retaining Mullite ceramic (approx. 3 cm thick). This massive thermal mass retains heat and moisture exceptionally well inside the dome. While a traditional steel grill quickly dries meat out due to harsh drafts, CraftKamado preserves up to 40% more natural meat juices. Furthermore, you consume up to 30% less charcoal and can cook low & slow at 110°C for up to 24 continuous hours on a single load of lump charcoal, or reach searing heat up to 400°C for authentic stone-baked pizzas and steaks.",
+      faqQ2: "Which kamado size (18, 21, 23 or 27 inch) is best suited for me?",
+      faqA2: "<p>The ideal size depends on your household and cooking style:</p><ul><li><strong>18″ Basic & Premium:</strong> Ideal for balconies, urban gardens and households of 2–4 people. Compact and rapid heat-up.</li><li><strong>21″ Versatile:</strong> Perfect for families of 4–6 who enjoy simultaneous direct and indirect multi-zone grilling.</li><li><strong>23″ Bestseller:</strong> The most popular size in the Netherlands! Feeds 6–10 guests. Spacious enough for multiple whole chickens, racks of ribs or briskets alongside a pizza stone.</li><li><strong>27″ HoReCa Giant:</strong> The ultimate outdoor kitchen grill for large gatherings, catering and commercial gastronomy.</li></ul>",
+      faqQ3: "What is included out-of-the-box in the CraftKamado All-Inclusive package?",
+      faqA3: "<p>With us, you do not have to spend hundreds of euros on essential gear. Every CraftKamado arrives 100% complete with:</p><ul><li>Patented counter-balanced <strong>Air Hinge spring mechanism</strong> (the lid stays safely floating at any desired angle).</li><li>Multi-tier <strong>Divide & Conquer cooking system</strong> with half-moon grates and heat deflectors.</li><li>Heavy-duty <strong>cast iron half-moon sear grate</strong> for restaurant marks.</li><li>Sliding <strong>stainless ash drawer & ash tool</strong> for clean disposal.</li><li>Integrated <strong>wood chip feeder port</strong> (add smoke chunks mid-cook without opening the dome).</li><li>Heavy-duty <strong>waterproof all-weather cover</strong> with UV protection.</li><li>Powder-coated <strong>steel rolling cart with 4 industrial casters</strong> (including 2 locks).</li><li>Folding <strong>natural bamboo side tables</strong> with integrated accessory hooks.</li></ul>",
+      faqQ4: "How does delivery and pallet shipping work in the Netherlands?",
+      faqA4: "All kamados are delivered <strong>free and fully insured</strong> on a dedicated transport pallet across the Netherlands. You will receive a tracking code and a phone call or SMS from our carrier in advance to coordinate your preferred delivery window. The driver safely places the pallet via pallet truck at your front door, driveway or garden gate.",
+      faqQ5: "Can the ceramic kamado stay outdoors all year round in winter?",
+      faqA5: "Yes, CraftKamado is engineered specifically for the demanding North-European climate. The high-grade Mullite ceramic and glazed exterior are impervious to frost, snow and rain. We recommend using the included heavy-duty weatherproof cover when not in use to keep bamboo tables and hardware in pristine condition.",
+
       cartTriggerText: "Cart",
       heroTitle: "Ceramic Mastery.<br><span class=\"highlight\">All-Inclusive</span> Delivered.",
       heroSubtitle: "No hidden costs, no separate accessories to purchase. CraftKamado delivers the most complete ceramic BBQ in the Netherlands, crafted from heavy-duty Mullite ceramic with patented Air Hinge counter-balance.",
@@ -725,6 +757,24 @@
     setElemText("footerSupportReturns", t.footerSupportReturns);
     setElemText("footerColSecurity", t.footerColSecurity);
     setElemText("footerSslNote", t.footerSslNote);
+
+    
+    // FAQ Section
+    setElemText("navFaq", t.navFaq);
+    setElemText("footerLinkFaq", t.footerLinkFaq);
+    setElemText("faqSectionTag", t.faqSectionTag);
+    setElemText("faqSectionTitle", t.faqSectionTitle);
+    setElemText("faqSectionDesc", t.faqSectionDesc);
+    setElemText("faqQ1", t.faqQ1);
+    setElemHtml("faqA1", t.faqA1);
+    setElemText("faqQ2", t.faqQ2);
+    setElemHtml("faqA2", t.faqA2);
+    setElemText("faqQ3", t.faqQ3);
+    setElemHtml("faqA3", t.faqA3);
+    setElemText("faqQ4", t.faqQ4);
+    setElemHtml("faqA4", t.faqA4);
+    setElemText("faqQ5", t.faqQ5);
+    setElemHtml("faqA5", t.faqA5);
 
     updateModelConfigurator();
     renderCart();

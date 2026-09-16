@@ -498,10 +498,32 @@ async function exportIntentsCsv(db) {
   return lines.join('\r\n');
 }
 
+
+async function deletePurchaseIntent(db, intentId) {
+  if (!db || !intentId) return { ok: false, error: "Missing database or intentId" };
+  await ensureTables(db);
+
+  // Retrieve intent details before deletion to update sessions if needed
+  const intentRow = await db.prepare("SELECT session_id, total_amount_eur FROM purchase_intents WHERE id = ?").bind(intentId).first();
+  
+  if (intentRow && intentRow.session_id) {
+    const otherIntents = await db.prepare("SELECT COUNT(*) as c FROM purchase_intents WHERE session_id = ? AND id != ?").bind(intentRow.session_id, intentId).first();
+    if (!otherIntents || otherIntents.c === 0) {
+      // No remaining intents for this session, revert reached_intent flag
+      await db.prepare("UPDATE market_sessions SET reached_intent = 0 WHERE session_id = ?").bind(intentRow.session_id).run();
+      await db.prepare("UPDATE abandoned_carts SET converted_to_intent = 0 WHERE session_id = ?").bind(intentRow.session_id).run();
+    }
+  }
+
+  await db.prepare("DELETE FROM purchase_intents WHERE id = ?").bind(intentId).run();
+  return { ok: true, deletedId: intentId };
+}
+
 module.exports = {
   trackEvent,
   updateCart,
   recordPurchaseIntent,
   getMarketStats,
-  exportIntentsCsv
+  exportIntentsCsv,
+  deletePurchaseIntent
 };

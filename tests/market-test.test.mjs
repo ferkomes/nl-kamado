@@ -356,5 +356,104 @@ describe('CraftKamado Netherlands Market Test Suite', () => {
       assert.ok(body.includes('Visitors'));
       assert.ok(body.includes('Potential Revenue'));
     });
+  describe('7. Admin Intent Deletion & Recalibration', () => {
+    test('DELETE /api/market-test/intent rejects unauthorized requests', async () => {
+      const req = new Request('http://localhost/api/market-test/intent?id=test_intent_123', {
+        method: 'DELETE'
+      });
+      const res = await workerModule.fetch(req, mockEnv);
+      assert.equal(res.status, 401);
+    });
+
+    test('DELETE /api/market-test/intent removes test lead and recalibrates stats', async () => {
+      // 1. Submit a test intent to delete
+      const testSessionId = 'test_del_session_888';
+      const intentPayload = {
+        sessionId: testSessionId,
+        customer: {
+          name: 'Test Tester',
+          email: 'test_delete_me@example.nl',
+          phone: '0699999999',
+          postalCode: '1000 AA',
+          city: 'Amsterdam',
+          country: 'NL'
+        },
+        paymentMethod: 'ideal',
+        source: 'Test Search',
+        landingPage: '/',
+        initialColor: 'Black',
+        finalColor: 'Black',
+        modelName: '18" Basic',
+        sizeInch: '18',
+        items: [{ id: 'kamado_18', type: 'kamado', name: '18" Basic', price: 599, qty: 1 }],
+        accessories: [],
+        kamadoPriceEur: 599,
+        accessoriesPriceEur: 0,
+        totalAmountEur: 599
+      };
+
+      const createRes = await workerModule.fetch(new Request('http://localhost/api/market-test/purchase-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(intentPayload)
+      }), mockEnv);
+      const createData = await createRes.json();
+      assert.ok(createData.intentId);
+
+      // Verify it exists
+      const beforeRow = await db.prepare('SELECT * FROM purchase_intents WHERE id = ?').bind(createData.intentId).first();
+      assert.ok(beforeRow);
+
+      // 2. Delete the intent as admin
+      const delReq = new Request(`http://localhost/api/market-test/intent?id=${createData.intentId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer test-admin-pwd' }
+      });
+      const delRes = await workerModule.fetch(delReq, mockEnv);
+      assert.equal(delRes.status, 200);
+      const delData = await delRes.json();
+      assert.equal(delData.ok, true);
+
+      // 3. Verify it is gone from database
+      const afterRow = await db.prepare('SELECT * FROM purchase_intents WHERE id = ?').bind(createData.intentId).first();
+      assert.equal(afterRow, null);
+    });
   });
+
+  describe('8. SEO, Robots.txt, Sitemap and Schema.org Structured Data', () => {
+    test('GET /robots.txt serves valid robots directives pointing to sitemap', async () => {
+      const req = new Request('http://localhost/robots.txt', { method: 'GET' });
+      const res = await workerModule.fetch(req, mockEnv);
+      assert.equal(res.status, 200);
+      assert.ok(res.headers.get('Content-Type').includes('text/plain'));
+      const text = await res.text();
+      assert.ok(text.includes('User-agent: *'));
+      assert.ok(text.includes('Disallow: /admin'));
+      assert.ok(text.includes('Sitemap: https://nl-kamado.ferkomes.workers.dev/sitemap.xml'));
+    });
+
+    test('GET /sitemap.xml serves valid XML sitemap with hreflangs', async () => {
+      const req = new Request('http://localhost/sitemap.xml', { method: 'GET' });
+      const res = await workerModule.fetch(req, mockEnv);
+      assert.equal(res.status, 200);
+      assert.ok(res.headers.get('Content-Type').includes('application/xml'));
+      const text = await res.text();
+      assert.ok(text.includes('<loc>https://nl-kamado.ferkomes.workers.dev/</loc>'));
+      assert.ok(text.includes('hreflang="nl"'));
+      assert.ok(text.includes('hreflang="en"'));
+    });
+
+    test('GET / contains rich SEO meta, FAQ schema and breadcrumbs', async () => {
+      const req = new Request('http://localhost/', { method: 'GET' });
+      const res = await workerModule.fetch(req, mockEnv);
+      assert.equal(res.status, 200);
+      const body = await res.text();
+      assert.ok(body.includes('CraftKamado® Nederland | Premium All-Inclusive Kamado BBQ'));
+      assert.ok(body.includes('application/ld+json'));
+      assert.ok(body.includes('"@type": "FAQPage"'));
+      assert.ok(body.includes('"@type": "Product"'));
+      assert.ok(body.includes('Veelgestelde Vragen over de Kamado BBQ'));
+    });
+  });
+});
 });

@@ -178,6 +178,23 @@
 
   // --- EVENTS ---
   document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("intentsTable")?.addEventListener("click", (e) => {
+      const btn = e.target.closest(".btn-delete-lead");
+      if (btn) {
+        const id = btn.getAttribute("data-id");
+        const email = btn.getAttribute("data-email");
+        if (id) deleteSingleIntent(id, email);
+      }
+    });
+
+    document.getElementById("intentsSearchInput")?.addEventListener("input", () => {
+      applyIntentsFilter();
+    });
+
+    document.getElementById("purgeTestsBtn")?.addEventListener("click", () => {
+      purgeAllTestOrders();
+    });
+
     document.getElementById("authBtn").addEventListener("click", () => {
       const pwd = document.getElementById("adminPwd").value.trim();
       if (!pwd) return;

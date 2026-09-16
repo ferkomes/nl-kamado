@@ -74,6 +74,56 @@ export default {
       });
     }
 
+                // SEO: robots.txt
+    if (pathname === '/robots.txt') {
+      const robotsTxt = [
+        'User-agent: *',
+        'Allow: /',
+        'Disallow: /admin',
+        'Disallow: /api/',
+        '',
+        'Sitemap: https://nl-kamado.ferkomes.workers.dev/sitemap.xml',
+        ''
+      ].join('\\n');
+      return new Response(robotsTxt, {
+        headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'public, max-age=86400' }
+      });
+    }
+
+    // SEO: sitemap.xml
+    if (pathname === '/sitemap.xml') {
+      const nowIso = new Date().toISOString().split('T')[0];
+      const sitemapXml = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
+        '  <url>',
+        '    <loc>https://nl-kamado.ferkomes.workers.dev/</loc>',
+        '    <xhtml:link rel="alternate" hreflang="nl" href="https://nl-kamado.ferkomes.workers.dev/?lang=nl"/>',
+        '    <xhtml:link rel="alternate" hreflang="en" href="https://nl-kamado.ferkomes.workers.dev/?lang=en"/>',
+        '    <xhtml:link rel="alternate" hreflang="x-default" href="https://nl-kamado.ferkomes.workers.dev/"/>',
+        '    <lastmod>' + nowIso + '</lastmod>',
+        '    <changefreq>daily</changefreq>',
+        '    <priority>1.0</priority>',
+        '  </url>',
+        '  <url>',
+        '    <loc>https://nl-kamado.ferkomes.workers.dev/?lang=nl</loc>',
+        '    <lastmod>' + nowIso + '</lastmod>',
+        '    <changefreq>daily</changefreq>',
+        '    <priority>0.9</priority>',
+        '  </url>',
+        '  <url>',
+        '    <loc>https://nl-kamado.ferkomes.workers.dev/?lang=en</loc>',
+        '    <lastmod>' + nowIso + '</lastmod>',
+        '    <changefreq>daily</changefreq>',
+        '    <priority>0.8</priority>',
+        '  </url>',
+        '</urlset>'
+      ].join('\\n');
+      return new Response(sitemapXml, {
+        headers: { 'Content-Type': 'application/xml; charset=utf-8', 'Cache-Control': 'public, max-age=86400' }
+      });
+    }
+
     // 1. Static Storefront HTML
     if (pathname === '/' || pathname === '/index.html') {
       return new Response(HTML_CONTENT, {
@@ -258,6 +308,42 @@ export default {
         return new Response('CSV export error: ' + err.message, { status: 500 });
       }
     }
+
+    // 9. Delete Intent / Remove Test Lead (DELETE /api/market-test/intent or POST /api/market-test/delete-intent)
+    if ((pathname === "/api/market-test/intent" && method === "DELETE") || (pathname === "/api/market-test/delete-intent" && method === "POST")) {
+      if (!authenticateAdmin(request, env)) {
+        return new Response(JSON.stringify({ error: "Niet geautoriseerd" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+        });
+      }
+
+      try {
+        let intentId = url.searchParams.get("id");
+        if (!intentId && method === "POST") {
+          const body = await request.json().catch(() => ({}));
+          intentId = body.intentId || body.id;
+        }
+
+        if (!intentId) {
+          return new Response(JSON.stringify({ error: "Intent ID ontbreekt" }), {
+            status: 400,
+            headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+          });
+        }
+
+        const res = await deletePurchaseIntent(env.DB, intentId);
+        return new Response(JSON.stringify(res), {
+          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+        });
+      } catch (err) {
+        return new Response(JSON.stringify({ error: err.message }), {
+          status: 500,
+          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+        });
+      }
+    }
+
 
     return new Response('Pagina niet gevonden', { status: 404 });
   }
