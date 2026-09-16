@@ -358,7 +358,7 @@ async function getMarketStats(db) {
       const kamado = items.find(i => i.type === 'kamado');
       if (kamado) {
         const accNames = items.filter(i => i.type === 'accessory').map(i => i.name).sort().join(' + ');
-        const combKey = `${kamado.sizeInch}″ (${kamado.colorName} / ${kamado.textureName})` + (accNames ? ` + ${accNames}` : ' (Alleen Kamado)');
+        const kSize = kamado.sizeInch || kamado.modelId || row.size_inch || "23"; const kCol = kamado.colorName || row.color_name || ""; const kTex = kamado.textureName || row.texture || ""; const combKey = `${kSize}″ (${kCol}${kTex ? " / " + kTex : ""})` + (accNames ? ` + ${accNames}` : ' (Alleen Kamado)');
         const curr = combMap.get(combKey) || { description: combKey, count: 0, totalValue: 0 };
         curr.count += 1;
         curr.totalValue += items.reduce((s, i) => s + (i.price * i.qty), 0);
