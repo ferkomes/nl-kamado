@@ -2,13 +2,13 @@ name = "nl-kamado"
 main = "worker.js"
 compatibility_date = "2024-09-01"
 
-# D1 Database binding for market test tracking & catalog
+# Cloudflare D1 Database binding
 [[d1_databases]]
 binding = "DB"
 database_name = "nl_kamado_db"
-database_id = "nl-kamado-db-id"
+database_id = "7897664a-27ca-4d3a-a3ed-01f5a8a8edea"
 
-# R2 Bucket binding for media/assets
+# Cloudflare R2 Bucket binding
 [[r2_buckets]]
 binding = "ASSETS"
 bucket_name = "nl-kamado-assets"
