@@ -15,7 +15,7 @@ Geïsoleerde Nederlandse vraagvalidatie-applicatie (~1 maand markt-test) voor **
 2. **Realistisch Afrekenproces**: Volledige Nederlandse adresvelden (straatnaam, huisnummer, postcode `1234 AB`, woonplaats) en vertrouwde betaalopties (iDEAL, Creditcard, Klarna).
 3. **Geen Echte Betalingen**: Geen Stripe, iDEAL-transactie of facturatie.
 4. **Aankoopintentie Registratie (`PURCHASE_INTENT`)**: Bij de definitieve klik op **„Doorgaan naar betaling”** wordt de aankoopintentie vastgelegd in Cloudflare D1 en ontvangt de klant een transparante en vriendelijke melding dat KundiKamado de Nederlandse marktintroductie voorbereidt, niets in rekening is gebracht en de klant als dank 10% VIP introductiekorting reserveert.
-5. **E-mailnotificaties**: Voor elke nieuwe aankoopintentie wordt direct een e-mail verstuurd naar de beheerder (`info@kundikamado.hu`) met alle klant- en besteldetails.
+5. **E-mailnotificaties**: Voor elke nieuwe aankoopintentie wordt direct een e-mail verstuurd naar de beheerder (`ferkomes@gmail.com`) met alle klant- en besteldetails.
 6. **Analytisch Dashboard (`/admin/market-test`)**: Realtime inzicht in trechterconversie, populariteit van modellen, kleuren, accessoires, topcombinaties, hypothetische omzet en verlaten winkelwagens.
 
 ---
@@ -49,7 +49,7 @@ Geïsoleerde Nederlandse vraagvalidatie-applicatie (~1 maand markt-test) voor **
 
 ## 📊 Beheerdersdashboard: `/admin/market-test`
 
-Beveiligd met het admin-wachtwoord uit `wrangler.toml` (`ADMIN_PASSWORD`).
+Beveiligd met de Worker-secret `ADMIN_PASSWORD`. Er zijn geen standaardwachtwoorden.
 
 - **KPI Overzicht**:
   - Unieke bezoekers
@@ -111,3 +111,29 @@ npm run dev
    ```bash
    npm run deploy
    ```
+
+
+## Értesítések és élesítés (javítás után)
+
+A `worker.js` generált fájl: a források módosítása után `npm run build` szükséges.
+A mostani folyamat vásárlási szándékot rögzít; nem indít fizetést vagy előrendelést.
+A látogatók és konverziók böngészőazonosítók alapján számolódnak, nem ellenőrzött személyek alapján.
+Az azonos böngészőből, azonos e-maillel és kosárral ismételt beküldés egy érdeklődésnek számít.
+
+A meglévő közös `mail-sender` és az ott már beállított Mailjet-fiók/feladócím
+marad használatban. **Nem kell új Mailjet-kulcs vagy új feladó a holland Workerhez.**
+A holland oldal a `/nl-kamado/intent` végpontot hívja, amelynek egyetlen címzettje
+**ferkomes@gmail.com**. A vásárló címe válaszcímként szerepel, nem címzettként.
+Az általános traktoros végpontra nincs visszaesés, mert az más címzetteket is használ.
+
+A közös küldő helyi forrásában (`../kundikamado/integrations/mail-sender.js`)
+a holland végpont már szerepel. Éles használathoz ennek a verziónak kell futnia
+a `mail-sender` szolgáltatásban is; a helyi tesztek nem igazolják az éles verziót.
+
+A holland oldalon `npm test`, majd `npm run deploy` készíti el és tölti fel a Workert.
+Az adminhoz a `ADMIN_PASSWORD` Worker-secret szükséges; a korábbi, Gitbe került
+jelszó helyett új jelszót használj (`npx wrangler secret put ADMIN_PASSWORD`).
+
+Küldési hibánál az érdeklődés megmarad, a hiba a `notification_error` mezőbe kerül
+és az adminfelületen látható. Nincs automatikus újraküldés. A tesztek nem küldenek
+valódi levelet.

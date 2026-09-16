@@ -56,10 +56,9 @@ function authenticateAdmin(request, env) {
   const authHeader = request.headers.get('Authorization') || '';
   const tokenHeader = authHeader.replace(/^Bearer\\s+/i, '');
 
-  const expected = env.ADMIN_PASSWORD || 'S33puoxIF10C79DuZjk1tPr22VnBzFn-SBhlbq7Vp1w';
+  const expected = env.ADMIN_PASSWORD;
   const token = tokenQuery || tokenHeader;
-  if (!token) return false;
-  return (token === expected || token === 'admin' || token === 'kamado' || token === 'kundikamado' || token === 'craftkamado');
+  return Boolean(expected && token && token === expected);
 }
 
 export default {
@@ -67,6 +66,9 @@ export default {
     const url = new URL(request.url);
     const pathname = url.pathname;
     const method = request.method;
+    // Personal lead data and admin credentials must not be cached.
+    const privateHeaders = { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' };
+
 
     // CORS preflight
     if (method === 'OPTIONS') {
@@ -213,10 +215,13 @@ export default {
     if (pathname === '/api/market-test/track' && method === 'POST') {
       try {
         const body = await request.json();
-        const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+        const ip = ''; // Do not persist raw IP addresses.
         const userAgent = request.headers.get('User-Agent') || '';
         const referer = request.headers.get('Referer') || '';
 
+        if (body.eventType === 'purchase_intent') {
+          throw new Error('Purchase intent is recorded only through checkout.');
+        }
         await trackEvent(env.DB, {
           sessionId: body.sessionId,
           eventType: body.eventType,
@@ -227,12 +232,12 @@ export default {
         });
 
         return new Response(JSON.stringify({ ok: true }), {
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          headers: privateHeaders
         });
       } catch (err) {
         return new Response(JSON.stringify({ error: err.message }), {
           status: 400,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          headers: privateHeaders
         });
       }
     }
@@ -243,12 +248,12 @@ export default {
         const body = await request.json();
         await updateCart(env.DB, body);
         return new Response(JSON.stringify({ ok: true }), {
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          headers: privateHeaders
         });
       } catch (err) {
         return new Response(JSON.stringify({ error: err.message }), {
           status: 400,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          headers: privateHeaders
         });
       }
     }
@@ -263,12 +268,12 @@ export default {
 
         const result = await recordPurchaseIntent(env, body);
         return new Response(JSON.stringify(result), {
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          headers: privateHeaders
         });
       } catch (err) {
         return new Response(JSON.stringify({ error: err.message }), {
           status: 400,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          headers: privateHeaders
         });
       }
     }
@@ -278,19 +283,19 @@ export default {
       if (!authenticateAdmin(request, env)) {
         return new Response(JSON.stringify({ error: 'Niet geautoriseerd' }), {
           status: 401,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          headers: privateHeaders
         });
       }
 
       try {
         const stats = await getMarketStats(env.DB);
         return new Response(JSON.stringify(stats), {
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          headers: privateHeaders
         });
       } catch (err) {
         return new Response(JSON.stringify({ error: err.message }), {
           status: 500,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          headers: privateHeaders
         });
       }
     }
@@ -306,7 +311,8 @@ export default {
         return new Response(csvContent, {
           headers: {
             'Content-Type': 'text/csv; charset=utf-8',
-            'Content-Disposition': 'attachment; filename="kundikamado-nl-intents.csv"'
+            'Content-Disposition': 'attachment; filename="kundikamado-nl-intents.csv"',
+            'Cache-Control': 'no-store'
           }
         });
       } catch (err) {

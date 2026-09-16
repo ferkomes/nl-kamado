@@ -110,7 +110,7 @@ async function trackEvent(db, { sessionId, eventType, payload = {}, ip = '', use
   const initialColor = payload.initialColor || payload.color || null;
   const finalColor = payload.finalColor || payload.color || initialColor || null;
 
-  const reachedCart = ['add_to_cart', 'open_cart'].includes(eventType) ? 1 : 0;
+  const reachedCart = eventType === 'add_to_cart' ? 1 : 0;
   const reachedCheckout = eventType === 'checkout_start' ? 1 : 0;
   const reachedContact = eventType === 'contact_complete' ? 1 : 0;
   const reachedIntent = eventType === 'purchase_intent' ? 1 : 0;
@@ -151,16 +151,22 @@ async function updateCart(db, { sessionId, items = [], totalAmount = 0, lastStep
 
   const isCheckout = lastStep === 'checkout';
   const isContact = Boolean(email && email.includes('@'));
+  if (items.length) {
+    await trackEvent(db, { sessionId, eventType: 'add_to_cart', payload: { source } });
+  }
 
   await db.prepare(`
     UPDATE market_sessions
     SET last_active_at = ?,
-        reached_cart = 1,
+        reached_cart = CASE WHEN ? = 1 THEN 1 ELSE reached_cart END,
         reached_checkout = CASE WHEN ? = 1 THEN 1 ELSE reached_checkout END,
         reached_contact = CASE WHEN ? = 1 THEN 1 ELSE reached_contact END
     WHERE session_id = ?
-  `).bind(now, isCheckout ? 1 : 0, isContact ? 1 : 0, sessionId).run();
+  `).bind(now, items.length ? 1 : 0, isCheckout ? 1 : 0, isContact ? 1 : 0, sessionId).run();
 
+  if (!items.length) {
+    await db.prepare('DELETE FROM abandoned_carts WHERE session_id = ? AND converted_to_intent = 0').bind(sessionId).run();
+  }
   if (items && items.length > 0) {
     await db.prepare(`
       INSERT INTO abandoned_carts (
@@ -186,23 +192,36 @@ async function recordPurchaseIntent(env, intentData) {
   if (!db) throw new Error('Database binding DB is missing');
   await ensureTables(db);
 
-  const intentId = 'intent_' + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
   const now = new Date().toISOString();
 
   const cust = intentData.customer || {};
   const items = intentData.items || [];
-  const accessories = intentData.accessories || [];
+  if (typeof intentData.sessionId !== 'string' || !intentData.sessionId || intentData.sessionId.length > 200 ||
+      typeof cust.email !== 'string' || cust.email.length > 254 || !/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(cust.email) ||
+      !Array.isArray(items) || !items.length || items.length > 100 ||
+      items.some(i => !i || !['kamado', 'accessory'].includes(i.type) ||
+        typeof i.name !== 'string' || i.name.length > 300 ||
+        !Number.isFinite(i.price) || i.price <= 0 || i.price > 10000 ||
+        !Number.isInteger(i.qty) || i.qty < 1 || i.qty > 100) ||
+      items.filter(i => i.type === 'kamado').length > 1) {
+    throw new Error('Ongeldige contactgegevens of winkelwagen.');
+  }
+  const accessories = items.filter(i => i.type === 'accessory');
+  // Same session, customer and basket represent the same intent, including retries.
+  const fingerprint = JSON.stringify([intentData.sessionId, cust.email.trim().toLowerCase(), items]);
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(fingerprint));
+  const intentId = 'intent_' + Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, '0')).join('');
 
   // Find Kamado & separate prices
   const kamadoItem = items.find(i => i.type === 'kamado') || {};
   const kamadoPrice = (kamadoItem.price || 0) * (kamadoItem.qty || 1);
   const accPrice = accessories.reduce((sum, a) => sum + (a.price || 0) * (a.qty || 1), 0);
-  const totalAmount = intentData.totalAmountEur || (kamadoPrice + accPrice);
+  const totalAmount = Math.round((kamadoPrice + accPrice) * 100) / 100;
 
-  const modelName = kamadoItem.name || intentData.modelName || 'CraftKamado';
-  const sizeInch = String(kamadoItem.sizeInch || intentData.sizeInch || '23');
+  const modelName = kamadoItem.name || 'Accessories only';
+  const sizeInch = String(kamadoItem.name ? (kamadoItem.sizeInch || intentData.sizeInch || '') : '');
   const initialColor = intentData.initialColor || intentData.colorName || 'Black';
-  const finalColor = intentData.finalColor || kamadoItem.colorName || intentData.colorName || 'Black';
+  const finalColor = kamadoItem.name ? (kamadoItem.colorName || intentData.finalColor || intentData.colorName || 'Black') : '';
   const source = intentData.source || 'Direct';
   const landingPage = intentData.landingPage || '/';
 
@@ -211,8 +230,8 @@ async function recordPurchaseIntent(env, intentData) {
   const city = (cust.city || '').trim();
 
   // 1. Insert into purchase_intents
-  await db.prepare(`
-    INSERT INTO purchase_intents (
+  const inserted = await db.prepare(`
+    INSERT OR IGNORE INTO purchase_intents (
       id, session_id, created_at, email, name, phone,
       postal_code, city, country, source, landing_page,
       initial_color, final_color, model_name, size_inch,
@@ -251,6 +270,15 @@ async function recordPurchaseIntent(env, intentData) {
     intentData.paymentMethod || 'ideal'
   ).run();
 
+  if (!inserted.meta.changes) return { ok: true, intentId, duplicate: true };
+
+  // Checkout remains countable even if page-view telemetry failed or arrived later.
+  await trackEvent(db, {
+    sessionId: intentData.sessionId,
+    eventType: 'purchase_intent',
+    payload: { source, landingPage, initialColor, finalColor }
+  });
+
   // 2. Update session
   await db.prepare(`
     UPDATE market_sessions
@@ -278,6 +306,8 @@ async function recordPurchaseIntent(env, intentData) {
   try {
     const notifyResult = await sendPurchaseIntentNotification(env, {
       id: intentId,
+      sessionId: intentData.sessionId,
+      paymentMethod: intentData.paymentMethod,
       modelName,
       sizeInch,
       finalColor,
@@ -290,6 +320,10 @@ async function recordPurchaseIntent(env, intentData) {
       source,
       landingPage
     });
+    if (!notifyResult.success) {
+      await db.prepare('UPDATE purchase_intents SET notification_error = ? WHERE id = ?')
+        .bind(notifyResult.error || 'MAIL_SEND_FAILED', intentId).run();
+    }
     if (notifyResult.success) {
       await db.prepare(`UPDATE purchase_intents SET notification_sent = 1 WHERE id = ?`).bind(intentId).run();
     }
@@ -362,7 +396,7 @@ async function getMarketStats(db) {
     if (found) found.count += 1;
   });
 
-  const totalKamados = intentsList.length;
+  const totalKamados = targetModels.reduce((sum, model) => sum + model.count, 0);
   targetModels.forEach(m => {
     m.share = totalKamados > 0 ? (m.count / totalKamados) : 0;
   });
@@ -380,6 +414,7 @@ async function getMarketStats(db) {
 
   intentsList.forEach(row => {
     const col = (row.final_color || row.initial_color || '').toLowerCase();
+    if (!row.size_inch) return;
     const match = targetColors.find(c => col.includes(c.key.toLowerCase()) || col.includes(c.name.toLowerCase()));
     if (match) match.count += 1;
   });
@@ -466,7 +501,9 @@ async function exportIntentsCsv(db) {
 
   const escapeCsv = (val) => {
     if (val === null || val === undefined) return '""';
-    return `"${String(val).replace(/"/g, '""')}"`;
+    const value = String(val);
+    const safeValue = /^[\s]*[=+@-]/.test(value) ? "'" + value : value;
+    return `"${safeValue.replace(/"/g, '""')}"`;
   };
 
   const lines = [headers.join(',')];

@@ -55,7 +55,6 @@ describe('CraftKamado Netherlands Market Test Suite', () => {
     mockEnv = {
       DB: db,
       ADMIN_PASSWORD: 'test-admin-pwd',
-      NOTIFY_EMAIL: 'info@kundikamado.hu',
       STORE_NAME: 'CraftKamado Nederland'
     };
 
@@ -456,4 +455,123 @@ describe('CraftKamado Netherlands Market Test Suite', () => {
     });
   });
 });
+});
+
+describe('Regression: isolated owner notifications and reliable demand counts', () => {
+  let env;
+  let worker;
+  const payload = () => ({
+    sessionId: 'regression-session',
+    customer: { email: 'buyer@example.nl', name: 'Buyer' },
+    sizeInch: '23', finalColor: 'Red', totalAmountEur: 1,
+    items: [{ id: 'kamado_23', type: 'kamado', name: '23 Premium', sizeInch: '23', colorName: 'Blue', price: 1019, qty: 1 }],
+    accessories: [{ name: 'Phantom accessory', price: 999, qty: 1 }]
+  });
+  const submit = data => worker.fetch(new Request('https://example.test/api/market-test/purchase-intent', {
+    method: 'POST', body: JSON.stringify(data)
+  }), env);
+
+  before(async () => {
+    env = { DB: createMockD1(), ADMIN_PASSWORD: 'regression-password' };
+    worker = (await import('../worker.js')).default;
+  });
+
+  test('common passwords never grant stats, export or delete access; missing secret fails closed', async () => {
+    for (const token of ['admin', 'kamado', 'kundikamado', 'craftkamado']) {
+      for (const [route, method] of [['stats', 'GET'], ['export-intents.csv', 'GET'], ['intent?id=anything', 'DELETE']]) {
+        const response = await worker.fetch(new Request('https://example.test/api/market-test/' + route, {
+          method, headers: { Authorization: 'Bearer ' + token }
+        }), env);
+        assert.equal(response.status, 401);
+      }
+    }
+    assert.equal((await worker.fetch(new Request('https://example.test/api/market-test/stats?token=admin'), {})).status, 401);
+  });
+
+  test('rejects empty baskets, invalid email and negative quantities before storing', async () => {
+    for (const data of [{ ...payload(), items: [] }, { ...payload(), customer: { email: 'bad' } },
+      { ...payload(), items: [{ ...payload().items[0], qty: -1 }] }]) {
+      assert.equal((await submit(data)).status, 400);
+    }
+    assert.equal((await env.DB.prepare('SELECT COUNT(*) AS n FROM purchase_intents').first()).n, 0);
+  });
+
+  test('uses basket totals and color, records missing telemetry, persists notification failure', async () => {
+    const result = await (await submit(payload())).json();
+    assert.equal(result.ok, true);
+    const row = await env.DB.prepare('SELECT * FROM purchase_intents WHERE id = ?').bind(result.intentId).first();
+    assert.equal(row.total_amount_eur, 1019);
+    assert.equal(row.accessories_price_eur, 0);
+    assert.equal(row.final_color, 'Blue');
+    assert.equal(row.notification_sent, 0);
+    assert.equal(row.notification_error, 'MAIL_NOT_CONFIGURED');
+    const session = await env.DB.prepare('SELECT * FROM market_sessions WHERE session_id = ?').bind(payload().sessionId).first();
+    assert.equal(session.reached_intent, 1);
+    assert.equal(session.reached_checkout, 1);
+  });
+
+  test('concurrent retries keep one lead and the same intent identifier', async () => {
+    const responses = await Promise.all([submit(payload()), submit(payload())]);
+    const [a, b] = await Promise.all(responses.map(r => r.json()));
+    assert.equal(a.intentId, b.intentId);
+    assert.equal(a.duplicate, true);
+    assert.equal((await env.DB.prepare('SELECT COUNT(*) AS n FROM purchase_intents').first()).n, 1);
+  });
+
+  test('telemetry cannot mark a session as converted without a saved lead', async () => {
+    const response = await worker.fetch(new Request('https://example.test/api/market-test/track', {
+      method: 'POST', body: JSON.stringify({ sessionId: 'fake', eventType: 'purchase_intent' })
+    }), env);
+    assert.equal(response.status, 400);
+  });
+
+  test('clearing a basket removes its abandoned cart', async () => {
+    for (const items of [payload().items, []]) {
+      const response = await worker.fetch(new Request('https://example.test/api/market-test/cart-update', {
+        method: 'POST', body: JSON.stringify({ sessionId: 'empty-cart', items, totalAmount: 1019 })
+      }), env);
+      assert.equal(response.status, 200);
+    }
+    assert.equal(await env.DB.prepare('SELECT * FROM abandoned_carts WHERE session_id = ?').bind('empty-cart').first(), null);
+  });
+
+  test('accessory-only intent does not count as a 23-inch kamado', async () => {
+    await submit({ ...payload(), sessionId: 'accessories', items: [{ type: 'accessory', name: 'Cover', price: 49, qty: 1 }] });
+    const response = await worker.fetch(new Request('https://example.test/api/market-test/stats', {
+      headers: { Authorization: 'Bearer regression-password' }
+    }), env);
+    const stats = await response.json();
+    assert.equal(stats.kpis.purchaseIntent, 2);
+    assert.equal(stats.models.find(m => m.key === '23').count, 1);
+  });
+
+  test('mail reuses the shared sender only through the dedicated NL route', async () => {
+    const vm = await import('node:vm');
+    const source = fs.readFileSync(path.join(__dirname, '../server/email-service.js'), 'utf8');
+    const calls = [];
+    let reply = { success: true, recipient: 'ferkomes@gmail.com' };
+    const context = { module: { exports: {} }, AbortSignal,
+      fetch: () => { throw Error('No direct Mailjet or public fallback allowed'); }
+    };
+    vm.runInNewContext(source, context);
+    const send = context.module.exports.sendPurchaseIntentNotification;
+    const mailEnv = { NOTIFY_EMAIL: 'wrong@example.test', MAIL_SENDER: {
+      fetch: async (url, options) => {
+        calls.push({ url, data: JSON.parse(options.body) });
+        return Response.json(reply);
+      }
+    } };
+    assert.equal((await send(mailEnv, payload())).success, true);
+    assert.equal(calls[0].url, 'https://mail-sender/nl-kamado/intent');
+    assert.equal(calls[0].data.targetEmail, 'ferkomes@gmail.com');
+    assert.equal(calls[0].data.customerEmail, 'buyer@example.nl');
+    reply = { success: false, error: 'MAIL_PROVIDER_ERROR' };
+    assert.equal((await send(mailEnv, payload())).success, false);
+    reply = { success: true, recipient: 'wrong@example.test' };
+    assert.equal((await send(mailEnv, payload())).success, false);
+    mailEnv.MAIL_SENDER.fetch = async () => { throw Error('Unavailable'); };
+    assert.equal((await send(mailEnv, payload())).error, 'MAIL_SEND_FAILED');
+    assert.equal((await send({}, payload())).error, 'MAIL_NOT_CONFIGURED');
+    assert.equal(calls.length, 3);
+  });
 });

@@ -7,8 +7,17 @@
 
   const urlToken = new URLSearchParams(window.location.search).get("token");
   let adminToken = urlToken || sessionStorage.getItem("kk_nl_admin_token") || localStorage.getItem("craft_admin_token") || "";
-  if (urlToken) sessionStorage.setItem("kk_nl_admin_token", urlToken);
+  if (urlToken) {
+    sessionStorage.setItem("kk_nl_admin_token", urlToken);
+    history.replaceState(null, "", window.location.pathname);
+  }
   let currentIntents = [];
+
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, c => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[c]));
+  }
 
   function formatEur(amount) {
     return "€" + Number(amount || 0).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
@@ -56,6 +65,7 @@
 
       if (resp.status === 401) {
         sessionStorage.removeItem("kk_nl_admin_token");
+      localStorage.removeItem("craft_admin_token");
         adminToken = "";
         showAuthOverlay();
         return;
@@ -120,7 +130,7 @@
       } else {
         accessories.forEach(a => {
           const tr = document.createElement("tr");
-          tr.innerHTML = '<td><strong>' + a.name + '</strong></td>' +
+          tr.innerHTML = '<td><strong>' + escapeHtml(a.name) + '</strong></td>' +
             '<td><span class="badge badge-primary">' + a.count + ' pcs</span></td>' +
             '<td><span class="badge badge-success">' + formatPct(a.attachRate) + '</span></td>' +
             '<td>' + formatEur(a.revenue) + '</td>';
@@ -138,7 +148,7 @@
       } else {
         configurations.forEach(cfg => {
           const tr = document.createElement("tr");
-          tr.innerHTML = '<td><strong>' + cfg.description + '</strong></td>' +
+          tr.innerHTML = '<td><strong>' + escapeHtml(cfg.description) + '</strong></td>' +
             '<td><span class="badge badge-primary">' + cfg.count + ' pcs</span></td>' +
             '<td><strong>' + formatEur(cfg.totalValue) + '</strong></td>';
           confTbody.appendChild(tr);
@@ -192,15 +202,15 @@
       const regionText = (item.postal_code || item.city) ? (item.postal_code + " " + item.city).trim() : "NL";
 
       tr.innerHTML = '<td><small>' + formatDate(item.created_at) + '</small></td>' +
-        '<td><strong>' + modelText + '</strong></td>' +
-        '<td>' + colorText + '</td>' +
-        '<td><small>' + accStr + '</small></td>' +
+        '<td><strong>' + escapeHtml(modelText) + '</strong></td>' +
+        '<td>' + escapeHtml(colorText) + '</td>' +
+        '<td><small>' + escapeHtml(accStr) + '</small></td>' +
         '<td><strong style="color: var(--success);">' + formatEur(item.total_amount_eur) + '</strong></td>' +
-        '<td><code>' + (item.email || "-") + '</code></td>' +
-        '<td><span class="badge badge-source">' + (item.source || "Direct") + '</span></td>' +
-        '<td><small>' + regionText + '</small></td>' +
+        '<td><code>' + escapeHtml((item.email || "-")) + '</code><br><small>' + (item.notification_sent ? 'Owner email sent' : 'Owner email failed: ' + escapeHtml(item.notification_error || 'Not sent')) + '</small></td>' +
+        '<td><span class="badge badge-source">' + escapeHtml((item.source || "Direct")) + '</span></td>' +
+        '<td><small>' + escapeHtml(regionText) + '</small></td>' +
         '<td style="text-align: right;">' +
-          '<button class="btn-delete-lead" data-id="' + item.id + '" data-email="' + (item.email || "") + '" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; padding: 0.25rem 0.6rem; border-radius: 4px; font-size: 0.75rem; cursor: pointer; transition: all 0.2s;" title="Delete this order / test lead">' +
+          '<button class="btn-delete-lead" data-id="' + escapeHtml(item.id) + '" data-email="' + escapeHtml((item.email || "")) + '" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; padding: 0.25rem 0.6rem; border-radius: 4px; font-size: 0.75rem; cursor: pointer; transition: all 0.2s;" title="Delete this order / test lead">' +
             '🗑️ Delete' +
           '</button>' +
         '</td>';
@@ -291,6 +301,7 @@
 
     document.getElementById("logoutBtn")?.addEventListener("click", () => {
       sessionStorage.removeItem("kk_nl_admin_token");
+      localStorage.removeItem("craft_admin_token");
       adminToken = "";
       showAuthOverlay();
     });

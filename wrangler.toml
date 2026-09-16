@@ -13,13 +13,13 @@ database_id = "7897664a-27ca-4d3a-a3ed-01f5a8a8edea"
 binding = "ASSETS"
 bucket_name = "nl-kamado-assets"
 
+# Cloudflare Service Binding to shared mail-sender
 [[services]]
 binding = "MAIL_SENDER"
 service = "mail-sender"
 
 [vars]
-ADMIN_PASSWORD = "S33puoxIF10C79DuZjk1tPr22VnBzFn-SBhlbq7Vp1w"
-NOTIFY_EMAIL = "info@kundikamado.hu"
 APP_ENV = "production"
 STORE_NAME = "CraftKamado Nederland"
 CURRENCY = "EUR"
+NOTIFY_EMAIL = "ferkomes@gmail.com"

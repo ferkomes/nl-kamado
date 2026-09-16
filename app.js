@@ -1121,6 +1121,11 @@
     }
 
     const submitBtn = document.getElementById("submitIntentBtn");
+    if (submitBtn.disabled) return;
+    if (!cart.length) {
+      errorEl.textContent = currentLang === "en" ? "Your cart is empty." : "Je winkelwagen is leeg.";
+      return;
+    }
     submitBtn.disabled = true;
     submitBtn.textContent = currentLang === "en" ? "Processing..." : "Verwerken...";
 
@@ -1146,7 +1151,7 @@
       source: trafficSource,
       landingPage: window.location.pathname + window.location.search,
       initialColor,
-      finalColor: currentColor.name,
+      finalColor: kamadoItem.colorName || currentColor.name,
       modelName: kamadoItem.name || `${activeModelKey}″ CraftKamado`,
       sizeInch: kamadoItem.sizeInch || "23",
       items: cart,
@@ -1167,13 +1172,6 @@
         const errJson = await resp.json().catch(() => ({}));
         throw new Error(errJson.error || (currentLang === "en" ? "An error occurred while saving." : "Er trad een fout op bij het opslaan."));
       }
-
-      trackEvent("purchase_intent", {
-        model: payload.modelName,
-        color: payload.finalColor,
-        totalEur: totalAmount,
-        email
-      });
 
       // Close checkout modal & Open exact Dutch / English demand notice modal
       closeCheckout();
@@ -1206,7 +1204,7 @@
       // Email was already provided in checkout! Do NOT ask again!
       emailContainer.style.display = "none";
       notifyBtn.onclick = () => {
-        confirmationMsg.innerHTML = t.vipAckMsg.replace("{email}", customerEmail);
+        confirmationMsg.textContent = t.vipAckMsg.replace(/<\/?strong>/g, "").replace("{email}", customerEmail);
         confirmationMsg.style.display = "block";
         notifyBtn.style.display = "none";
       };
@@ -1219,7 +1217,7 @@
           alert(currentLang === "en" ? "Please enter a valid email address." : "Vul een geldig e-mailadres in.");
           return;
         }
-        confirmationMsg.innerHTML = t.vipAckMsg.replace("{email}", mail);
+        confirmationMsg.textContent = t.vipAckMsg.replace(/<\/?strong>/g, "").replace("{email}", mail);
         confirmationMsg.style.display = "block";
         notifyBtn.style.display = "none";
         emailContainer.style.display = "none";

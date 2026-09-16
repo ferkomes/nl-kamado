@@ -1,10 +1,14 @@
 /**
  * Email notification service for new PURCHASE_INTENT
- * Sent ONLY upon final PURCHASE_INTENT submit via mail-sender
+ * Sent ONLY upon final PURCHASE_INTENT submit via the dedicated NL route on mail-sender
  */
 
 async function sendPurchaseIntentNotification(env, intent) {
-  const recipient = env.NOTIFY_EMAIL || "info@kundikamado.hu";
+  const recipient = "ferkomes@gmail.com";
+  if (!env || !env.MAIL_SENDER || typeof env.MAIL_SENDER.fetch !== "function") {
+    return { success: false, error: "MAIL_NOT_CONFIGURED" };
+  }
+
   const totalFormatted = "€" + Number(intent.totalAmountEur || 0).toLocaleString("nl-NL");
   const kamadoFormatted = "€" + Number(intent.kamadoPriceEur || 0).toLocaleString("nl-NL");
   const accFormatted = "€" + Number(intent.accessoriesPriceEur || 0).toLocaleString("nl-NL");
@@ -16,7 +20,9 @@ async function sendPurchaseIntentNotification(env, intent) {
     lines.push(acc.name + " ×" + (acc.qty || 1));
   });
 
-  const subject = "New NL Purchase Intent – " + totalFormatted + " (" + (intent.customer?.email || intent.email || "Geen email") + ")";
+  const customerEmail = intent.customer?.email || intent.email || "";
+  const customerName = intent.customer?.name || intent.name || "CraftKamado Customer";
+  const subject = "New NL Purchase Intent – " + totalFormatted + " (" + (customerEmail || "Geen email") + ")";
 
   const plainText = [
     "=== NIEUWE NEDERLANDSE AANKOOPINTENTIE (MARKET TEST) ===",
@@ -29,8 +35,8 @@ async function sendPurchaseIntentNotification(env, intent) {
     lines.map(l => "  • " + l).join("\n"),
     "",
     "--- KLANTGEGEVENS ---",
-    "Naam: " + (intent.customer?.name || intent.name || "-"),
-    "E-mail: " + (intent.customer?.email || intent.email || "-"),
+    "Naam: " + (customerName || "-"),
+    "E-mail: " + (customerEmail || "-"),
     "Telefoon: " + (intent.customer?.phone || intent.phone || "-"),
     "Adres: " + (intent.customer?.street || intent.street || "-") + ", " + (intent.customer?.postalCode || intent.postalCode || "") + " " + (intent.customer?.city || intent.city || "") + " (NL)",
     "Betaalmethode intentie: " + (intent.paymentMethod || "ideal"),
@@ -46,37 +52,25 @@ async function sendPurchaseIntentNotification(env, intent) {
   ].join("\n");
 
   try {
-    const fd = new FormData();
-    fd.append("name", intent.customer?.name || intent.name || "CraftKamado Lead");
-    fd.append("email", intent.customer?.email || intent.email || recipient);
-    fd.append("phone", intent.customer?.phone || intent.phone || "-");
-    fd.append("productName", (intent.modelName || "Kamado") + " (" + (intent.finalColor || "Black") + ") – Totaal: " + totalFormatted);
-    fd.append("subject", subject);
-    fd.append("message", plainText);
-
-    let res;
-    if (env && env.MAIL_SENDER && typeof env.MAIL_SENDER.fetch === "function") {
-      res = await env.MAIL_SENDER.fetch("https://mail-sender/", {
-        method: "POST",
-        body: fd
-      });
-    } else {
-      res = await fetch("https://mail-sender.ferkomes.workers.dev/", {
-        method: "POST",
-        body: fd
-      });
+    const res = await env.MAIL_SENDER.fetch("https://mail-sender/nl-kamado/intent", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal: AbortSignal.timeout(20000),
+      body: JSON.stringify({
+        subject,
+        message: plainText,
+        customerEmail,
+        targetEmail: recipient
+      })
+    });
+    const result = await res.json();
+    if (res.ok && result.success === true && result.recipient === recipient) {
+      return { success: true, recipient, method: "mail-sender-binding" };
     }
-
-    if (res && res.ok) {
-      return { success: true, method: "mail-sender" };
-    }
-  } catch (err) {
-    console.warn("Mail-sender error:", err);
+    return { success: false, error: result.error || "MAIL_SENDER_REJECTED" };
+  } catch {
+    return { success: false, error: "MAIL_SEND_FAILED" };
   }
-
-  return { success: false, error: "Could not deliver notification email" };
 }
 
-module.exports = {
-  sendPurchaseIntentNotification
-};
+module.exports = { sendPurchaseIntentNotification };
