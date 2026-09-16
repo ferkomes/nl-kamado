@@ -1,203 +1,273 @@
 /**
- * KundiKamado Netherlands - Market Test Storefront Logic
- * - Real 100% Dutch e-commerce experience
+ * CraftKamado Netherlands - Market Demand Storefront Logic
+ * - Full Dual-Language Support: Dutch (NL) & English (EN)
+ * - Removed test indicators for 100% authentic e-commerce perception
  * - Funnel telemetry: visitor -> add_to_cart -> checkout -> purchase_intent
- * - Model & size selection: 18 Basic, 18 Premium, 21, 23, 27
+ * - Model selection: 18 Basic, 18 Premium, 21, 23, 27
  * - Color selection: Black, Burgundy, Blue, Green, Orange, Beige, Yellow
- * - Size-specific accessories matrix
- * - Exact Dutch legal demand validation modal
+ * - Size-specific accessories matrix & attach rates
+ * - Legal Dutch/English demand validation notice modal
  */
 
 (function() {
-  'use strict';
+  "use strict";
 
   // --- CATALOG DATA ---
   const KAMADO_MODELS = {
-    '18_basic': {
-      key: '18_basic',
-      name: 'KundiKamado 18″ Basic',
-      sizeInch: '18',
-      modelCode: 'AU-18OR-BAS',
-      badge: 'Compact & Scherp Geprijsd',
+    "18_basic": {
+      key: "18_basic",
+      name: { nl: "CraftKamado 18″ Basic", en: "CraftKamado 18″ Basic" },
+      sizeInch: "18",
+      modelCode: "CK-18BAS",
+      badge: { nl: "Compact & Scherp Geprijsd", en: "Compact & Best Value" },
       price: 599,
       origPrice: 749,
-      grate: 'Ø 38.5 cm',
-      body: '45.0 cm (17.7″)',
-      people: '2–4 personen',
-      weight: '55.0 kg',
-      desc: 'Compacte keramische kamado barbecue met uitstekende warmte-isolatie. Ideaal voor balkons, stadstuinen of kleine gezinnen.',
-      image: '/images/kamado_18_front.jpg',
+      grate: "Ø 38.5 cm",
+      body: "45.0 cm (17.7″)",
+      people: { nl: "2–4 personen", en: "2–4 people" },
+      weight: "55.0 kg",
+      desc: {
+        nl: "Compacte keramische kamado barbecue met uitstekende warmte-isolatie. Ideaal voor balkons, stadstuinen of kleine gezinnen.",
+        en: "Compact ceramic kamado BBQ with outstanding thermal insulation. Ideal for balconies, urban gardens or small families."
+      },
+      image: "/images/kamado_18_front.jpg",
       thumbs: [
-        '/images/kamado_18_front.jpg',
-        '/images/kamado_divide_open.jpg',
-        '/images/kamado_detail_vent.jpg',
-        '/images/kamado_bbq_lifestyle.jpg'
+        "/images/kamado_18_front.jpg",
+        "/images/kamado_divide_open.jpg",
+        "/images/kamado_detail_vent.jpg",
+        "/images/kamado_bbq_lifestyle.jpg"
       ]
     },
-    '18_premium': {
-      key: '18_premium',
-      name: 'KundiKamado 18″ Premium',
-      sizeInch: '18',
-      modelCode: 'AU-18OR',
-      badge: 'Compact & Familie',
+    "18_premium": {
+      key: "18_premium",
+      name: { nl: "CraftKamado 18″ Premium", en: "CraftKamado 18″ Premium" },
+      sizeInch: "18",
+      modelCode: "CK-18PREM",
+      badge: { nl: "Compact & Familie", en: "Compact & Family" },
       price: 699,
       origPrice: 898,
-      grate: 'Ø 38.5 cm',
-      body: '45.0 cm (17.7″)',
-      people: '2–4 personen',
-      weight: '59.5 kg',
-      desc: 'Compacte Mullite keramische kamado van topklasse. Compleet All-Inclusive pakket met Air Hinge veerscharnier, multi-level Divide & Conquer kooksysteem, gietijzeren rooster, handige aslade, rookhout-inlaat en weersbestendige beschermhoes.',
-      image: '/images/kamado_18_front.jpg',
+      grate: "Ø 38.5 cm",
+      body: "45.0 cm (17.7″)",
+      people: { nl: "2–4 personen", en: "2–4 people" },
+      weight: "59.5 kg",
+      desc: {
+        nl: "Compacte Mullite keramische kamado van topklasse. Compleet All-Inclusive pakket met Air Hinge veerscharnier, multi-level Divide & Conquer kooksysteem, gietijzeren rooster, handige aslade, rookhout-inlaat en weersbestendige beschermhoes.",
+        en: "High-end compact Mullite ceramic kamado. Complete All-Inclusive package with Air Hinge spring counter-balance, Divide & Conquer cooking system, cast iron grate, slide-out ash drawer, wood chip feeder and heavy weather cover."
+      },
+      image: "/images/kamado_18_front.jpg",
       thumbs: [
-        '/images/kamado_18_front.jpg',
-        '/images/kamado_divide_open.jpg',
-        '/images/kamado_detail_vent.jpg',
-        '/images/kamado_detail_hinge.jpg',
-        '/images/kamado_bbq_lifestyle.jpg'
+        "/images/kamado_18_front.jpg",
+        "/images/kamado_divide_open.jpg",
+        "/images/kamado_detail_vent.jpg",
+        "/images/kamado_detail_hinge.jpg",
+        "/images/kamado_bbq_lifestyle.jpg"
       ]
     },
-    '21': {
-      key: '21',
-      name: 'KundiKamado 21″ Veelzijdig',
-      sizeInch: '21',
-      modelCode: 'AU-21OR',
-      badge: 'Veelzijdig & Familie+',
+    "21": {
+      key: "21",
+      name: { nl: "CraftKamado 21″ Veelzijdig", en: "CraftKamado 21″ Versatile" },
+      sizeInch: "21",
+      modelCode: "CK-21ALL",
+      badge: { nl: "Veelzijdig & Familie+", en: "Versatile & Family+" },
       price: 889,
       origPrice: 1108,
-      grate: 'Ø 47.5 cm',
-      body: '53.6 cm (21.1″)',
-      people: '4–6 personen',
-      weight: '75.0 kg',
-      desc: 'Het ideale allround formaat! Royaal kookoppervlak voor familie en vrienden, inclusief compleet multi-level kooksysteem, gietijzeren halve maan roosters en luxe afwerking.',
-      image: '/images/kamado_21_front.jpg',
+      grate: "Ø 47.5 cm",
+      body: "53.6 cm (21.1″)",
+      people: { nl: "4–6 personen", en: "4–6 people" },
+      weight: "75.0 kg",
+      desc: {
+        nl: "Het ideale allround formaat! Royaal kookoppervlak voor familie en vrienden, inclusief compleet multi-level kooksysteem, gietijzeren halve maan roosters en luxe afwerking.",
+        en: "The quintessential all-round size! Generous cooking surface for family and friends, featuring the full multi-level cooking rack, half-moon cast iron grate, and luxury finish."
+      },
+      image: "/images/kamado_21_front.jpg",
       thumbs: [
-        '/images/kamado_21_front.jpg',
-        '/images/kamado_divide_open.jpg',
-        '/images/kamado_detail_vent.jpg',
-        '/images/kamado_detail_hinge.jpg',
-        '/images/kamado_bbq_lifestyle.jpg'
+        "/images/kamado_21_front.jpg",
+        "/images/kamado_divide_open.jpg",
+        "/images/kamado_detail_vent.jpg",
+        "/images/kamado_detail_hinge.jpg",
+        "/images/kamado_bbq_lifestyle.jpg"
       ]
     },
-    '23': {
-      key: '23',
-      name: 'KundiKamado 23″ Bestseller',
-      sizeInch: '23',
-      modelCode: 'AU-23OR',
-      badge: '🔥 Bestseller / Meest Gekozen',
+    "23": {
+      key: "23",
+      name: { nl: "CraftKamado 23″ Bestseller", en: "CraftKamado 23″ Bestseller" },
+      sizeInch: "23",
+      modelCode: "CK-23BEST",
+      badge: { nl: "🔥 Bestseller / Meest Gekozen", en: "🔥 Bestseller / Most Popular" },
       price: 1019,
       origPrice: 1178,
-      grate: 'Ø 52.3 cm',
-      body: '59.5 cm (23.5″)',
-      people: '4–8 personen (Ideaal)',
-      weight: '89.0 kg',
-      desc: 'De populairste kamado maat van Nederland! Uitstekende capaciteit voor meerdere hele kippen, ribs, briskets of pizza tegelijk. Volledig All-Inclusive geleverd met onderstel en zijtafels.',
-      image: '/images/kamado_23_front.jpg',
+      grate: "Ø 52.3 cm",
+      body: "59.5 cm (23.5″)",
+      people: { nl: "4–8 personen (Ideaal)", en: "4–8 people (Optimal)" },
+      weight: "89.0 kg",
+      desc: {
+        nl: "De populairste kamado maat van Nederland! Uitstekende capaciteit voor meerdere hele kippen, ribs, briskets of pizza tegelijk. Volledig All-Inclusive geleverd met onderstel en zijtafels.",
+        en: "The most popular kamado size in the Netherlands! Superb capacity for multiple whole chickens, racks of ribs, briskets or stone-baked pizza at once. Delivered fully All-Inclusive with rolling cart and side tables."
+      },
+      image: "/images/kamado_23_front.jpg",
       thumbs: [
-        '/images/kamado_23_front.jpg',
-        '/images/kamado_divide_open.jpg',
-        '/images/kamado_detail_vent.jpg',
-        '/images/kamado_detail_hinge.jpg',
-        '/images/kamado_bbq_lifestyle.jpg'
+        "/images/kamado_23_front.jpg",
+        "/images/kamado_divide_open.jpg",
+        "/images/kamado_detail_vent.jpg",
+        "/images/kamado_detail_hinge.jpg",
+        "/images/kamado_bbq_lifestyle.jpg"
       ]
     },
-    '27': {
-      key: '27',
-      name: 'KundiKamado 27″ HoReCa Reus',
-      sizeInch: '27',
-      modelCode: 'AU-27OR',
-      badge: 'Reus / HoReCa & Heavy Duty',
+    "27": {
+      key: "27",
+      name: { nl: "CraftKamado 27″ HoReCa Reus", en: "CraftKamado 27″ Heavy Duty Giant" },
+      sizeInch: "27",
+      modelCode: "CK-27PRO",
+      badge: { nl: "Reus / HoReCa & Heavy Duty", en: "Giant / Commercial & Heavy Duty" },
       price: 1319,
       origPrice: 1410,
-      grate: 'Ø 57.5 cm',
-      body: '67.7 cm (26.6″)',
-      people: '6–12+ personen',
-      weight: '94.6 kg',
-      desc: 'Enorme capaciteit voor grote gezelschappen, feesten en horecagebruik. 57.5 cm rvs kookrooster, geavanceerde dubbele ventilatieschuif en gewichtsloze dekselopening.',
-      image: '/images/kamado_27_front.jpg',
+      grate: "Ø 57.5 cm",
+      body: "67.7 cm (26.6″)",
+      people: { nl: "6–12+ personen", en: "6–12+ people" },
+      weight: "94.6 kg",
+      desc: {
+        nl: "Enorme capaciteit voor grote gezelschappen, feesten en horecagebruik. 57.5 cm rvs kookrooster, geavanceerde dubbele ventilatieschuif en gewichtsloze dekselopening.",
+        en: "Gigantic capacity for large gatherings, catering and heavy-duty commercial use. 57.5 cm stainless steel grate, dual precision air vent, and weightless lid balance."
+      },
+      image: "/images/kamado_27_front.jpg",
       thumbs: [
-        '/images/kamado_27_front.jpg',
-        '/images/kamado_divide_open.jpg',
-        '/images/kamado_detail_vent.jpg',
-        '/images/kamado_detail_hinge.jpg',
-        '/images/kamado_bbq_lifestyle.jpg'
+        "/images/kamado_27_front.jpg",
+        "/images/kamado_divide_open.jpg",
+        "/images/kamado_detail_vent.jpg",
+        "/images/kamado_detail_hinge.jpg",
+        "/images/kamado_bbq_lifestyle.jpg"
       ]
     }
   };
 
   const ACCESSORIES = [
     {
-      id: 'cover',
-      name: 'All-Weather Beschermhoes',
+      id: "cover",
+      name: { nl: "All-Weather Beschermhoes", en: "All-Weather Protective Cover" },
       isSizeDependent: true,
-      sizePrices: { '18': 39, '21': 45, '23': 49, '27': 59 },
-      desc: 'Zware kwaliteit waterdichte en UV-bestendige hoes, precies op maat voor het gekozen formaat.',
-      image: '/images/cover.webp'
+      sizePrices: { "18": 39, "21": 45, "23": 49, "27": 59 },
+      desc: {
+        nl: "Zware kwaliteit waterdichte en UV-bestendige hoes, precies op maat voor het gekozen formaat.",
+        en: "Heavy-duty waterproof and UV-resistant cover, tailor-made for your selected kamado size."
+      },
+      image: "/images/cover.webp"
     },
     {
-      id: 'rotisserie',
-      name: 'Draaispit / Rotisserie met motor',
+      id: "rotisserie",
+      name: { nl: "Draaispit / Rotisserie met motor", en: "Rotisserie Spit with Motor" },
       isSizeDependent: true,
-      sizePrices: { '18': 139, '21': 159, '23': 159, '27': 189 },
-      desc: 'Krachtige 230V/batterij motor met RVS spies voor ultiem sappig gevogelte en braadstukken.',
-      image: '/images/rotisserie.webp'
+      sizePrices: { "18": 139, "21": 159, "23": 159, "27": 189 },
+      desc: {
+        nl: "Krachtige 230V/batterij motor met RVS spies voor ultiem sappig gevogelte en braadstukken.",
+        en: "Powerful 230V/battery motor with food-grade stainless spit rod for extraordinarily juicy poultry and roasts."
+      },
+      image: "/images/rotisserie.webp"
     },
     {
-      id: 'cast-iron-halfmoon',
-      name: 'Gietijzeren Halve Maan Rooster / Plancha',
+      id: "cast-iron-halfmoon",
+      name: { nl: "Gietijzeren Halve Maan Rooster / Plancha", en: "Cast Iron Half-Moon Grate / Plancha" },
       isSizeDependent: true,
-      sizePrices: { '18': 49, '21': 59, '23': 69, '27': 79 },
-      desc: 'Tweezijdig bruikbaar: geribbeld voor grillstrepen, vlakke plancha voor burgers en groenten.',
-      image: '/images/divide.webp'
+      sizePrices: { "18": 49, "21": 59, "23": 69, "27": 79 },
+      desc: {
+        nl: "Tweezijdig bruikbaar: geribbeld voor grillstrepen, vlakke plancha voor burgers en groenten.",
+        en: "Reversible: ribbed side for authentic grill marks, flat plancha side for burgers, seafood and veggies."
+      },
+      image: "/images/divide.webp"
     },
     {
-      id: 'pizza-stone',
-      name: 'Cordieriet Pizzasteen (Extra Dik)',
+      id: "pizza-stone",
+      name: { nl: "Cordieriet Pizzasteen (Extra Dik)", en: "Cordierite Pizza Stone (Extra Thick)" },
       isSizeDependent: true,
-      sizePrices: { '18': 49, '21': 59, '23': 69, '27': 79 },
-      desc: 'Bestand tegen 400°C voor de perfecte knapperige Napolitaanse pizzabodem.',
-      image: '/images/pizza.webp'
+      sizePrices: { "18": 49, "21": 59, "23": 69, "27": 79 },
+      desc: {
+        nl: "Bestand tegen 400°C voor de perfecte knapperige Napolitaanse pizzabodem.",
+        en: "Withstands up to 400°C to bake crispy, authentic Italian stone-oven pizzas."
+      },
+      image: "/images/pizza.webp"
     },
     {
-      id: 'electric-starter',
-      name: 'Elektrische Houtskoolaansteker (2000W)',
+      id: "electric-starter",
+      name: { nl: "Elektrische Houtskoolaansteker (2000W)", en: "Electric Charcoal Lighter (2000W)" },
       isSizeDependent: false,
       price: 59,
-      desc: 'Binnen 60-90 seconden gloeiende houtskool met hete lucht, zonder chemicaliën.',
-      image: '/images/heat.webp'
+      desc: {
+        nl: "Binnen 60-90 seconden gloeiende houtskool met hete lucht, zonder chemicaliën.",
+        en: "Glowing charcoal in 60-90 seconds using clean superheated airflow without harmful lighter fluid."
+      },
+      image: "/images/heat.webp"
     },
     {
-      id: 'bbq-gloves',
-      name: 'Hittebestendige BBQ Handschoenen (350°C)',
+      id: "bbq-gloves",
+      name: { nl: "Hittebestendige BBQ Handschoenen (350°C)", en: "Heat-Resistant BBQ Gloves (350°C)" },
       isSizeDependent: false,
       price: 32,
-      desc: 'Antislip siliconen voor het veilig beetpakken van hete grillroosters en pannen.',
-      image: '/images/cover.webp'
-    },
-    {
-      id: 'meat-claws',
-      name: 'Pulled Pork Vleesklauwen Set',
-      isSizeDependent: false,
-      price: 16,
-      desc: 'Voedselveilige en oersterke klauwen om pulled pork en kipfilet razendsnel te versnipperen.',
-      image: '/images/ash.webp'
-    },
-    {
-      id: 'grid-clip',
-      name: 'RVS Roostertang & Lifter',
-      isSizeDependent: false,
-      price: 14,
-      desc: 'Robuuste grijper om hete roosters en gietijzer veilig uit de kamado te tillen.',
-      image: '/images/cast-iron.webp'
-    },
-    {
-      id: 'ash-collector-kit',
-      name: 'RVS Aslade & Schraper Kit',
-      isSizeDependent: false,
-      price: 22,
-      desc: 'Sluit naadloos aan op de luchtschuif voor schoon en stofvrij as verwijderen.',
-      image: '/images/ash.webp'
+      desc: {
+        nl: "Antislip siliconen voor het veilig beetpakken van hete grillroosters en pannen.",
+        en: "Non-slip silicone heat protection for safely handling hot grates and cast iron cookware."
+      },
+      image: "/images/cover.webp"
     }
   ];
+
+  const COLOR_OPTIONS = [
+    { id: "black", name: "Black", hex: "#171717", displayName: { nl: "Black (Onyx Zwart)", en: "Black (Onyx Black)" } },
+    { id: "burgundy", name: "Burgundy", hex: "#781d2e", displayName: { nl: "Burgundy (Bordeaux Rood)", en: "Burgundy (Wine Red)" } },
+    { id: "blue", name: "Blue", hex: "#1b3f75", displayName: { nl: "Blue (Marine Blauw)", en: "Blue (Navy Blue)" } },
+    { id: "green", name: "Green", hex: "#235338", displayName: { nl: "Green (Bosgroen)", en: "Green (Forest Green)" } },
+    { id: "orange", name: "Orange", hex: "#df5417", displayName: { nl: "Orange (Craft Oranje)", en: "Orange (Craft Orange)" } },
+    { id: "beige", name: "Beige", hex: "#d6cbb6", displayName: { nl: "Beige (Zand Beige)", en: "Beige (Sand Beige)" } },
+    { id: "yellow", name: "Yellow", hex: "#dca326", displayName: { nl: "Yellow (Warm Okergeel)", en: "Yellow (Warm Ochre)" } }
+  ];
+
+  // --- I18N DICTIONARY ---
+  const TRANSLATIONS = {
+    nl: {
+      topBanner: "🇳🇱 <strong>Gratis verzekerde palletlevering</strong> in heel Nederland • Tijdelijke voorjaarsactie: All-Inclusive pakket inbegrepen!",
+      navModellen: "Kamado Modellen",
+      navAllInclusive: "All-Inclusive Uitrusting",
+      navAccessoires: "Accessoires",
+      navWaarom: "Waarom CraftKamado?",
+      navReviews: "Ervaringen",
+      cartTriggerText: "Winkelwagen",
+      heroTitle: "Keramisch Meesterschap.<br><span class=\"highlight\">All-Inclusive</span> Geleverd.",
+      heroSubtitle: "Geen verborgen kosten, geen losse accessoires bijkopen. CraftKamado levert de meest complete keramische barbecue van Nederland, vervaardigd uit zwaar Mullite keramiek met gepatenteerd Air Hinge scharnier.",
+      goToCheckoutBtn: "Doorgaan naar Bestellen",
+      submitIntentBtn: "Doorgaan naar betaling",
+      noticeTitle: "Bedankt voor je interesse in CraftKamado!",
+      noticeBody1: "De door jou gekozen CraftKamado is momenteel nog niet beschikbaar in Nederland. We bereiden onze Nederlandse introductie voor.",
+      noticeBody2: "Je bestelling is niet geplaatst en er is niets in rekening gebracht.",
+      noticePrompt: "Wil je als eerste bericht krijgen zodra jouw gekozen Kamado beschikbaar is?",
+      vipNotifyBtn: "Ja, houd mij op de hoogte",
+      closeNoticeBtn: "Sluiten",
+      vipAckMsg: "✓ Dankjewel! We hebben je e-mailadres (<strong>{email}</strong>) genoteerd. Zodra jouw gekozen Kamado beschikbaar is, ontvang je direct bericht als eerste!",
+      emptyCartMsg: "Je winkelwagen is nog leeg.",
+      addAccBtn: "+ Toevoegen",
+      addedAccBtn: "✓ Toegevoegd"
+    },
+    en: {
+      topBanner: "🇳🇱 <strong>Free insured pallet delivery</strong> throughout the Netherlands • Temporary spring promotion: All-Inclusive package included!",
+      navModellen: "Kamado Models",
+      navAllInclusive: "All-Inclusive Gear",
+      navAccessoires: "Accessories",
+      navWaarom: "Why CraftKamado?",
+      navReviews: "Reviews",
+      cartTriggerText: "Cart",
+      heroTitle: "Ceramic Mastery.<br><span class=\"highlight\">All-Inclusive</span> Delivered.",
+      heroSubtitle: "No hidden costs, no separate accessories to purchase. CraftKamado delivers the most complete ceramic BBQ in the Netherlands, crafted from heavy-duty Mullite ceramic with patented Air Hinge counter-balance.",
+      goToCheckoutBtn: "Proceed to Checkout",
+      submitIntentBtn: "Continue to payment",
+      noticeTitle: "Thank you for your interest in CraftKamado!",
+      noticeBody1: "The CraftKamado you selected is currently not yet available in the Netherlands. We are preparing our launch in the Netherlands.",
+      noticeBody2: "Your order has not been placed and nothing has been charged.",
+      noticePrompt: "Would you like to be the first to know as soon as your chosen Kamado becomes available?",
+      vipNotifyBtn: "Yes, keep me updated",
+      closeNoticeBtn: "Close",
+      vipAckMsg: "✓ Thank you! We have noted your email address (<strong>{email}</strong>). As soon as your chosen Kamado is available, you will be the first to know!",
+      emptyCartMsg: "Your shopping cart is currently empty.",
+      addAccBtn: "+ Add to Cart",
+      addedAccBtn: "✓ Added"
+    }
+  };
 
   // --- ATTRIBUTION DETECTION ---
   function getUrlParams() {
@@ -213,27 +283,28 @@
     if (params.utm_source) {
       return params.utm_medium ? `${params.utm_source} / ${params.utm_medium}` : params.utm_source;
     }
-    const ref = document.referrer || '';
-    if (ref.includes('facebook') || ref.includes('fb.me') || ref.includes('instagram')) return 'Facebook / Meta Ad';
-    if (ref.includes('google')) return 'Google Search';
-    if (ref.includes('tiktok')) return 'TikTok';
-    return ref ? ref.replace(/https?:\/\/(www\.)?/, '').split('/')[0] : 'Direct';
+    const ref = document.referrer || "";
+    if (ref.includes("facebook") || ref.includes("fb.me") || ref.includes("instagram")) return "Facebook / Meta Ad";
+    if (ref.includes("google")) return "Google Search";
+    if (ref.includes("tiktok")) return "TikTok";
+    return ref ? ref.replace(/https?:\/\/(www\.)?/, "").split("/")[0] : "Direct";
   }
 
   const trafficSource = detectSource();
 
   // --- STATE ---
-  let activeModelKey = '23';
-  let initialColor = 'Black';
-  let currentColor = { id: 'black', name: 'Black', displayName: 'Black (Onyx Zwart)' };
+  let currentLang = localStorage.getItem("craft_nl_lang") || (new URLSearchParams(window.location.search).get("lang") === "en" ? "en" : "nl");
+  let activeModelKey = "23";
+  let initialColor = "Black";
+  let currentColor = COLOR_OPTIONS[0];
   let cart = [];
-  let checkoutEmailEntered = '';
+  let checkoutEmailEntered = "";
 
   function getSessionId() {
-    let sid = localStorage.getItem('kk_nl_session');
+    let sid = localStorage.getItem("craft_nl_session");
     if (!sid) {
-      sid = 'nl_' + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
-      localStorage.setItem('kk_nl_session', sid);
+      sid = "nl_" + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
+      localStorage.setItem("craft_nl_session", sid);
     }
     return sid;
   }
@@ -243,14 +314,15 @@
   // --- TELEMETRY ---
   async function trackEvent(eventType, payload = {}) {
     try {
-      await fetch('/api/market-test/track', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch("/api/market-test/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           sessionId,
           eventType,
           payload: {
             ...payload,
+            lang: currentLang,
             source: trafficSource,
             landingPage: window.location.pathname + window.location.search,
             initialColor,
@@ -262,12 +334,12 @@
     } catch (e) {}
   }
 
-  async function syncCartTelemetry(lastStep = 'cart') {
+  async function syncCartTelemetry(lastStep = "cart") {
     try {
       const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-      await fetch('/api/market-test/cart-update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch("/api/market-test/cart-update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           sessionId,
           items: cart,
@@ -281,7 +353,57 @@
   }
 
   function formatEur(amount) {
-    return '€' + Number(amount || 0).toLocaleString('nl-NL') + ',-';
+    return "€" + Number(amount || 0).toLocaleString("nl-NL") + ",-";
+  }
+
+  // --- I18N SWITCHER ---
+  function setLanguage(lang) {
+    currentLang = lang === "en" ? "en" : "nl";
+    localStorage.setItem("craft_nl_lang", currentLang);
+    document.documentElement.lang = currentLang;
+
+    // Toggle button active states
+    document.getElementById("btnLangNl")?.classList.toggle("active", currentLang === "nl");
+    document.getElementById("btnLangEn")?.classList.toggle("active", currentLang === "en");
+
+    const t = TRANSLATIONS[currentLang];
+
+    // Top banner
+    const bannerEl = document.getElementById("topBannerText");
+    if (bannerEl) bannerEl.innerHTML = t.topBanner;
+
+    // Nav
+    const setElemText = (id, text) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    };
+    setElemText("navModellen", t.navModellen);
+    setElemText("navAllInclusive", t.navAllInclusive);
+    setElemText("navAccessoires", t.navAccessoires);
+    setElemText("navWaarom", t.navWaarom);
+    setElemText("navReviews", t.navReviews);
+    setElemText("cartTriggerText", t.cartTriggerText);
+
+    // Hero
+    const heroTitleEl = document.querySelector(".hero-title");
+    if (heroTitleEl) heroTitleEl.innerHTML = t.heroTitle;
+    const heroSubEl = document.querySelector(".hero-subtitle");
+    if (heroSubEl) heroSubEl.textContent = t.heroSubtitle;
+
+    // Notice modal texts
+    setElemText("noticeTitle", t.noticeTitle);
+    setElemText("noticeBody1", t.noticeBody1);
+    setElemText("noticeBody2", t.noticeBody2);
+    setElemText("noticePrompt", t.noticePrompt);
+    setElemText("vipNotifyBtn", t.vipNotifyBtn);
+    setElemText("closeNoticeBtn", t.closeNoticeBtn);
+
+    // Cart & Checkout buttons
+    setElemText("goToCheckoutBtn", t.goToCheckoutBtn);
+    setElemText("submitIntentBtn", t.submitIntentBtn);
+
+    updateModelConfigurator();
+    renderCart();
   }
 
   // --- UI RENDERERS ---
@@ -289,294 +411,304 @@
     const model = KAMADO_MODELS[activeModelKey];
     if (!model) return;
 
-    document.getElementById('activeModelName').textContent = model.name;
-    document.getElementById('activeModelPrice').textContent = formatEur(model.price);
-    document.getElementById('activeModelOrigPrice').textContent = formatEur(model.origPrice);
-    document.getElementById('activeModelDesc').textContent = model.desc;
-    document.getElementById('addBtnPrice').textContent = formatEur(model.price);
+    const mName = model.name[currentLang] || model.name.nl;
+    const mDesc = model.desc[currentLang] || model.desc.nl;
+    const mBadge = model.badge[currentLang] || model.badge.nl;
+    const mPeople = model.people[currentLang] || model.people.nl;
 
-    document.getElementById('specGrate').textContent = model.grate;
-    document.getElementById('specBody').textContent = model.body;
-    document.getElementById('specPeople').textContent = model.people;
-    document.getElementById('specWeight').textContent = model.weight;
+    const elName = document.getElementById("activeModelName");
+    if (elName) elName.textContent = mName;
+    const elPrice = document.getElementById("activeModelPrice");
+    if (elPrice) elPrice.textContent = formatEur(model.price);
+    const elOrig = document.getElementById("activeModelOrigPrice");
+    if (elOrig) elOrig.textContent = formatEur(model.origPrice);
+    const elDesc = document.getElementById("activeModelDesc");
+    if (elDesc) elDesc.textContent = mDesc;
+    const elAddPrice = document.getElementById("addBtnPrice");
+    if (elAddPrice) elAddPrice.textContent = formatEur(model.price);
 
-    const activeImg = document.getElementById('activeModelImg');
-    activeImg.src = model.image;
-    document.getElementById('activeModelBadge').textContent = model.badge;
+    const elGrate = document.getElementById("specGrate");
+    if (elGrate) elGrate.textContent = model.grate;
+    const elBody = document.getElementById("specBody");
+    if (elBody) elBody.textContent = model.body;
+    const elPeople = document.getElementById("specPeople");
+    if (elPeople) elPeople.textContent = mPeople;
+    const elWeight = document.getElementById("specWeight");
+    if (elWeight) elWeight.textContent = model.weight;
 
-    const thumbsContainer = document.getElementById('galleryThumbs');
-    thumbsContainer.innerHTML = '';
-    model.thumbs.forEach((src, idx) => {
-      const thumb = document.createElement('div');
-      thumb.className = `thumb-item ${idx === 0 ? 'active' : ''}`;
-      thumb.innerHTML = `<img src="${src}" alt="Thumbnail ${idx + 1}">`;
-      thumb.onclick = () => {
-        document.querySelectorAll('.thumb-item').forEach(t => t.classList.remove('active'));
-        thumb.classList.add('active');
-        activeImg.src = src;
-      };
-      thumbsContainer.appendChild(thumb);
-    });
+    const activeImg = document.getElementById("activeModelImg");
+    if (activeImg) activeImg.src = model.image;
+    const elBadge = document.getElementById("activeModelBadge");
+    if (elBadge) elBadge.textContent = mBadge;
 
-    const accLabel = document.getElementById('accSelectedSizeLabel');
+    const thumbsContainer = document.getElementById("galleryThumbs");
+    if (thumbsContainer) {
+      thumbsContainer.innerHTML = "";
+      model.thumbs.forEach((src, idx) => {
+        const thumb = document.createElement("div");
+        thumb.className = `thumb-item ${idx === 0 ? "active" : ""}`;
+        thumb.innerHTML = `<img src="${src}" alt="Thumbnail ${idx + 1}">`;
+        thumb.onclick = () => {
+          document.querySelectorAll(".thumb-item").forEach(t => t.classList.remove("active"));
+          thumb.classList.add("active");
+          if (activeImg) activeImg.src = src;
+        };
+        thumbsContainer.appendChild(thumb);
+      });
+    }
+
+    const accLabel = document.getElementById("accSelectedSizeLabel");
     if (accLabel) accLabel.textContent = `${model.sizeInch}″ Kamado`;
+
+    const colorDisp = currentColor.displayName[currentLang] || currentColor.displayName.nl;
+    const colorLabel = document.getElementById("selectedColorName");
+    if (colorLabel) colorLabel.textContent = colorDisp;
 
     renderAccessories();
   }
 
   function renderAccessories() {
-    const grid = document.getElementById('accessoriesGrid');
+    const grid = document.getElementById("accessoriesGrid");
     if (!grid) return;
 
-    const currentSize = KAMADO_MODELS[activeModelKey]?.sizeInch || '23';
+    const currentSize = KAMADO_MODELS[activeModelKey]?.sizeInch || "23";
+    const t = TRANSLATIONS[currentLang];
 
-    grid.innerHTML = '';
+    grid.innerHTML = "";
     ACCESSORIES.forEach(acc => {
       let price = acc.price;
-      let sizeBadge = '';
+      let sizeBadge = "";
 
       if (acc.isSizeDependent) {
-        price = acc.sizePrices[currentSize] || acc.sizePrices['23'];
-        sizeBadge = `<span class="acc-size-badge">Maat ${currentSize}″</span>`;
+        price = acc.sizePrices[currentSize] || acc.sizePrices["23"];
+        sizeBadge = `<span class="acc-size-badge">${currentLang === "en" ? "Size" : "Maat"} ${currentSize}″</span>`;
       }
 
-      const card = document.createElement('div');
-      card.className = 'acc-card';
+      const accName = acc.name[currentLang] || acc.name.nl;
+      const accDesc = acc.desc[currentLang] || acc.desc.nl;
+
+      const card = document.createElement("div");
+      card.className = "acc-card";
       card.innerHTML = `
         <div class="acc-img-wrap">
-          <img src="${acc.image}" alt="${acc.name}" class="acc-img">
+          <img src="${acc.image}" alt="${accName}" class="acc-img">
           ${sizeBadge}
         </div>
         <div class="acc-body">
-          <h4 class="acc-title">${acc.name}</h4>
-          <p class="acc-desc">${acc.desc}</p>
+          <h4 class="acc-title">${accName}</h4>
+          <p class="acc-desc">${accDesc}</p>
           <div class="acc-footer">
             <div class="acc-price">${formatEur(price)}</div>
             <button class="btn btn-secondary add-acc-btn" data-id="${acc.id}">
-              + Toevoegen
+              ${t.addAccBtn}
             </button>
           </div>
         </div>
       `;
 
-      card.querySelector('.add-acc-btn').onclick = () => {
+      const addBtn = card.querySelector(".add-acc-btn");
+      addBtn.addEventListener("click", () => {
         addAccessoryToCart(acc, price, currentSize);
-      };
+        addBtn.textContent = t.addedAccBtn;
+        addBtn.classList.add("btn-primary");
+        addBtn.classList.remove("btn-secondary");
+        setTimeout(() => {
+          addBtn.textContent = t.addAccBtn;
+          addBtn.classList.remove("btn-primary");
+          addBtn.classList.add("btn-secondary");
+        }, 1200);
+      });
 
       grid.appendChild(card);
     });
   }
 
   // --- CART OPERATIONS ---
+  function saveCart() {
+    localStorage.setItem("craft_nl_cart", JSON.stringify(cart));
+    renderCart();
+  }
+
   function loadCart() {
     try {
-      const saved = localStorage.getItem('kk_nl_cart');
-      if (saved) cart = JSON.parse(saved);
+      cart = JSON.parse(localStorage.getItem("craft_nl_cart") || "[]");
     } catch (e) {
       cart = [];
     }
-    updateCartUI();
-  }
-
-  function saveCart() {
-    try {
-      localStorage.setItem('kk_nl_cart', JSON.stringify(cart));
-    } catch (e) {}
-    updateCartUI();
-    syncCartTelemetry();
   }
 
   function addModelToCart() {
     const model = KAMADO_MODELS[activeModelKey];
-    const cartItemId = `kamado_${activeModelKey}_${currentColor.id}`;
+    if (!model) return;
 
-    const existing = cart.find(item => item.id === cartItemId);
-    if (existing) {
-      existing.qty += 1;
+    const mName = model.name[currentLang] || model.name.nl;
+    const cDisp = currentColor.displayName[currentLang] || currentColor.displayName.nl;
+
+    const existingIndex = cart.findIndex(i => i.type === "kamado");
+    const kamadoItem = {
+      id: "kamado_" + model.key,
+      type: "kamado",
+      modelKey: model.key,
+      sizeInch: model.sizeInch,
+      name: mName,
+      colorId: currentColor.id,
+      colorName: currentColor.name,
+      colorDisplayName: cDisp,
+      price: model.price,
+      qty: 1,
+      image: model.image
+    };
+
+    if (existingIndex > -1) {
+      cart[existingIndex] = kamadoItem;
     } else {
-      cart.push({
-        id: cartItemId,
-        type: 'kamado',
-        modelKey: activeModelKey,
-        modelName: model.name,
-        name: `${model.name} – ${currentColor.displayName}`,
-        sizeInch: model.sizeInch,
-        colorId: currentColor.id,
-        colorName: currentColor.name,
-        colorDisplayName: currentColor.displayName,
-        price: model.price,
-        image: model.image,
-        qty: 1
-      });
+      cart.unshift(kamadoItem);
     }
 
     saveCart();
-    trackEvent('add_to_cart', {
-      type: 'kamado',
-      modelKey: activeModelKey,
-      modelName: model.name,
-      color: currentColor.name,
-      price: model.price
-    });
     openCart();
+    trackEvent("add_to_cart", { item: kamadoItem });
+    syncCartTelemetry("cart");
   }
 
   function addAccessoryToCart(acc, price, sizeInch) {
-    const sizeSuffix = acc.isSizeDependent ? `_${sizeInch}` : '';
-    const cartItemId = `acc_${acc.id}${sizeSuffix}`;
-    const displayName = acc.isSizeDependent ? `${acc.name} (${sizeInch}″)` : acc.name;
+    const accName = acc.name[currentLang] || acc.name.nl;
+    const itemKey = acc.isSizeDependent ? `${acc.id}_${sizeInch}` : acc.id;
+    const displayName = acc.isSizeDependent ? `${accName} (${sizeInch}″)` : accName;
 
-    const existing = cart.find(item => item.id === cartItemId);
+    const existing = cart.find(i => i.id === itemKey);
     if (existing) {
       existing.qty += 1;
     } else {
       cart.push({
-        id: cartItemId,
-        type: 'accessory',
-        rawId: acc.id,
+        id: itemKey,
+        type: "accessory",
+        accessoryId: acc.id,
         name: displayName,
         sizeInch: acc.isSizeDependent ? sizeInch : null,
-        price: price,
-        image: acc.image,
-        qty: 1
+        price,
+        qty: 1,
+        image: acc.image
       });
     }
 
     saveCart();
-    trackEvent('add_to_cart', {
-      type: 'accessory',
-      accessoryName: displayName,
-      price: price
-    });
     openCart();
+    trackEvent("add_to_cart", { item: { id: itemKey, name: displayName, price } });
+    syncCartTelemetry("cart");
   }
 
-  function updateCartUI() {
-    const badge = document.getElementById('cartCountBadge');
+  function renderCart() {
+    const listEl = document.getElementById("cartItemsList");
+    const countBadge = document.getElementById("cartCountBadge");
     const totalCount = cart.reduce((sum, item) => sum + item.qty, 0);
-    badge.textContent = totalCount;
+    const t = TRANSLATIONS[currentLang];
 
-    const list = document.getElementById('cartItemsList');
-    if (!list) return;
+    if (countBadge) countBadge.textContent = totalCount;
+
+    if (!listEl) return;
 
     if (cart.length === 0) {
-      list.innerHTML = '<div class="empty-cart-msg">Je winkelwagen is nog leeg.</div>';
-      document.getElementById('cartKamadoSubtotal').textContent = '€0,-';
-      document.getElementById('cartAccSubtotal').textContent = '€0,-';
-      document.getElementById('cartTotal').textContent = '€0,-';
-      document.getElementById('goToCheckoutBtn').disabled = true;
+      listEl.innerHTML = `<div class="empty-cart-msg">${t.emptyCartMsg}</div>`;
+      document.getElementById("cartKamadoSubtotal").textContent = formatEur(0);
+      document.getElementById("cartAccSubtotal").textContent = formatEur(0);
+      document.getElementById("cartTotal").textContent = formatEur(0);
+      document.getElementById("goToCheckoutBtn").disabled = true;
       return;
     }
 
-    document.getElementById('goToCheckoutBtn').disabled = false;
-    list.innerHTML = '';
+    document.getElementById("goToCheckoutBtn").disabled = false;
+    listEl.innerHTML = "";
 
-    let kamadoSub = 0;
-    let accSub = 0;
+    let kamadoSubtotal = 0;
+    let accSubtotal = 0;
 
-    cart.forEach(item => {
+    cart.forEach((item, index) => {
       const itemTotal = item.price * item.qty;
-      if (item.type === 'kamado') {
-        kamadoSub += itemTotal;
+      if (item.type === "kamado") {
+        kamadoSubtotal += itemTotal;
       } else {
-        accSub += itemTotal;
+        accSubtotal += itemTotal;
       }
 
-      let metaText = item.type === 'kamado' ? item.colorDisplayName : (item.sizeInch ? `Maat: ${item.sizeInch}″` : '');
-
-      const itemEl = document.createElement('div');
-      itemEl.className = 'cart-item';
+      const itemEl = document.createElement("div");
+      itemEl.className = "cart-item";
       itemEl.innerHTML = `
         <img src="${item.image}" alt="${item.name}" class="cart-item-img">
         <div class="cart-item-info">
           <div class="cart-item-title">${item.name}</div>
-          <div class="cart-item-meta">${metaText}</div>
-          <div class="cart-item-price">${formatEur(item.price)}</div>
-          <div class="cart-item-qty">
-            <button class="qty-btn dec-btn" data-id="${item.id}">-</button>
-            <span class="qty-val">${item.qty}</span>
-            <button class="qty-btn inc-btn" data-id="${item.id}">+</button>
-          </div>
+          ${item.colorDisplayName ? `<div class="cart-item-variant">${currentLang === "en" ? "Color" : "Kleur"}: ${item.colorDisplayName}</div>` : ""}
+          <div class="cart-item-price">${formatEur(item.price)} ${item.qty > 1 ? `× ${item.qty}` : ""}</div>
         </div>
-        <button class="remove-item-btn" data-id="${item.id}" aria-label="Verwijder">&times;</button>
+        <div class="cart-item-actions">
+          <button class="cart-remove-btn" aria-label="Verwijderen" data-index="${index}">&times;</button>
+        </div>
       `;
 
-      itemEl.querySelector('.dec-btn').onclick = () => {
-        if (item.qty > 1) {
-          item.qty -= 1;
-        } else {
-          cart = cart.filter(i => i.id !== item.id);
-        }
+      itemEl.querySelector(".cart-remove-btn").addEventListener("click", () => {
+        cart.splice(index, 1);
         saveCart();
-      };
+        syncCartTelemetry("cart");
+      });
 
-      itemEl.querySelector('.inc-btn').onclick = () => {
-        item.qty += 1;
-        saveCart();
-      };
-
-      itemEl.querySelector('.remove-item-btn').onclick = () => {
-        cart = cart.filter(i => i.id !== item.id);
-        saveCart();
-      };
-
-      list.appendChild(itemEl);
+      listEl.appendChild(itemEl);
     });
 
-    const total = kamadoSub + accSub;
-    document.getElementById('cartKamadoSubtotal').textContent = formatEur(kamadoSub);
-    document.getElementById('cartAccSubtotal').textContent = formatEur(accSub);
-    document.getElementById('cartTotal').textContent = formatEur(total);
+    const total = kamadoSubtotal + accSubtotal;
+    document.getElementById("cartKamadoSubtotal").textContent = formatEur(kamadoSubtotal);
+    document.getElementById("cartAccSubtotal").textContent = formatEur(accSubtotal);
+    document.getElementById("cartTotal").textContent = formatEur(total);
   }
 
   function openCart() {
-    document.getElementById('cartBackdrop').classList.add('open');
-    document.getElementById('cartDrawer').classList.add('open');
-    trackEvent('open_cart', { totalItems: cart.reduce((s, i) => s + i.qty, 0) });
+    document.getElementById("cartDrawer")?.classList.add("open");
+    document.getElementById("cartBackdrop")?.classList.add("open");
+    trackEvent("open_cart", { totalItems: cart.length });
   }
 
   function closeCart() {
-    document.getElementById('cartBackdrop').classList.remove('open');
-    document.getElementById('cartDrawer').classList.remove('open');
+    document.getElementById("cartDrawer")?.classList.remove("open");
+    document.getElementById("cartBackdrop")?.classList.remove("open");
   }
 
-  // --- CHECKOUT OPERATIONS ---
+  // --- CHECKOUT MODAL ---
   function openCheckout() {
     closeCart();
-    const modalBackdrop = document.getElementById('checkoutModalBackdrop');
-    modalBackdrop.classList.add('open');
+    const modal = document.getElementById("checkoutModalBackdrop");
+    modal?.classList.add("open");
 
-    const primaryKamado = cart.find(i => i.type === 'kamado');
-    const modelSummaryText = primaryKamado ? `${primaryKamado.modelName} (${primaryKamado.colorName})` : 'Accessoires Bestelling';
+    const kamadoItem = cart.find(i => i.type === "kamado");
+    let modelSummaryText = kamadoItem
+      ? `${kamadoItem.name} (${kamadoItem.colorDisplayName})`
+      : (currentLang === "en" ? "Accessories only" : "Alleen accessoires");
 
-    const kamadoSub = cart.filter(i => i.type === 'kamado').reduce((s, i) => s + (i.price * i.qty), 0);
-    const accSub = cart.filter(i => i.type === 'accessory').reduce((s, i) => s + (i.price * i.qty), 0);
+    const kamadoSub = cart.filter(i => i.type === "kamado").reduce((s, i) => s + (i.price * i.qty), 0);
+    const accSub = cart.filter(i => i.type === "accessory").reduce((s, i) => s + (i.price * i.qty), 0);
     const total = kamadoSub + accSub;
 
-    document.getElementById('checkoutModelSummary').textContent = modelSummaryText;
-    document.getElementById('checkoutKamadoPrice').textContent = formatEur(kamadoSub);
-    document.getElementById('checkoutAccPrice').textContent = formatEur(accSub);
-    document.getElementById('checkoutTotalAmount').textContent = formatEur(total);
-    document.getElementById('formErrors').textContent = '';
+    document.getElementById("checkoutModelSummary").textContent = modelSummaryText;
+    document.getElementById("checkoutKamadoPrice").textContent = formatEur(kamadoSub);
+    document.getElementById("checkoutAccPrice").textContent = formatEur(accSub);
+    document.getElementById("checkoutTotalAmount").textContent = formatEur(total);
+    document.getElementById("formErrors").textContent = "";
 
-    trackEvent('checkout_start', { totalAmount: total, kamadoSub, accSub });
-    syncCartTelemetry('checkout');
+    trackEvent("checkout_start", { totalAmount: total, kamadoSub, accSub });
+    syncCartTelemetry("checkout");
   }
 
   function closeCheckout() {
-    document.getElementById('checkoutModalBackdrop').classList.remove('open');
+    document.getElementById("checkoutModalBackdrop")?.classList.remove("open");
   }
 
-  // Track contact completion when user leaves email or zip
   function setupContactTracking() {
-    const emailInput = document.getElementById('custEmail');
+    const emailInput = document.getElementById("custEmail");
     if (emailInput) {
-      emailInput.addEventListener('blur', () => {
+      emailInput.addEventListener("blur", () => {
         const val = emailInput.value.trim();
-        if (val.includes('@')) {
+        if (val.includes("@")) {
           checkoutEmailEntered = val;
-          trackEvent('contact_complete', { email: val });
-          syncCartTelemetry('checkout');
+          trackEvent("contact_complete", { email: val });
+          syncCartTelemetry("checkout");
         }
       });
     }
@@ -585,88 +717,89 @@
   // --- FINAL PURCHASE INTENT SUBMIT ---
   async function handleCheckoutSubmit(e) {
     e.preventDefault();
-    const errorEl = document.getElementById('formErrors');
-    errorEl.textContent = '';
+    const errorEl = document.getElementById("formErrors");
+    errorEl.textContent = "";
 
-    const email = document.getElementById('custEmail').value.trim();
-    const phone = document.getElementById('custPhone').value.trim();
-    const name = document.getElementById('custName').value.trim();
-    const zip = document.getElementById('custZip').value.trim();
-    const city = document.getElementById('custCity').value.trim();
-    const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value || 'ideal';
+    const email = document.getElementById("custEmail").value.trim();
+    const phone = document.getElementById("custPhone").value.trim();
+    const name = document.getElementById("custName").value.trim();
+    const street = (document.getElementById("custStreet")?.value || "").trim();
+    const zip = document.getElementById("custZip").value.trim();
+    const city = document.getElementById("custCity").value.trim();
 
-    if (!email || !email.includes('@')) {
-      errorEl.textContent = 'Vul een geldig e-mailadres in.';
+    if (!email || !email.includes("@")) {
+      errorEl.textContent = currentLang === "en" ? "Please provide a valid email address." : "Vul een geldig e-mailadres in.";
       return;
     }
-    if (!phone || phone.length < 8) {
-      errorEl.textContent = 'Vul een geldig telefoonnummer in.';
+    if (!phone || phone.length < 7) {
+      errorEl.textContent = currentLang === "en" ? "Please provide a valid phone number." : "Vul een geldig telefoonnummer in.";
       return;
     }
     if (!name) {
-      errorEl.textContent = 'Vul je volledige naam in.';
+      errorEl.textContent = currentLang === "en" ? "Please provide your full name." : "Vul uw volledige naam in.";
       return;
     }
     if (!zip || !city) {
-      errorEl.textContent = 'Vul je postcode en woonplaats in.';
+      errorEl.textContent = currentLang === "en" ? "Please enter your postal code and city." : "Vul postcode en woonplaats in.";
       return;
     }
 
-    checkoutEmailEntered = email;
-
-    const submitBtn = document.getElementById('submitIntentBtn');
+    const submitBtn = document.getElementById("submitIntentBtn");
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Bezig met verwerken...';
+    submitBtn.textContent = currentLang === "en" ? "Processing..." : "Verwerken...";
 
-    const primaryKamado = cart.find(i => i.type === 'kamado') || {};
-    const accessories = cart.filter(i => i.type === 'accessory');
-    const kamadoPrice = cart.filter(i => i.type === 'kamado').reduce((s, i) => s + (i.price * i.qty), 0);
-    const accPrice = accessories.reduce((s, i) => s + (i.price * i.qty), 0);
-    const totalAmount = kamadoPrice + accPrice;
+    const kamadoItem = cart.find(i => i.type === "kamado") || {};
+    const kamadoSub = cart.filter(i => i.type === "kamado").reduce((s, i) => s + (i.price * i.qty), 0);
+    const accSub = cart.filter(i => i.type === "accessory").reduce((s, i) => s + (i.price * i.qty), 0);
+    const totalAmount = kamadoSub + accSub;
 
-    const intentPayload = {
+    const paymentOpt = document.querySelector(`input[name="payment_method"]:checked`)?.value || "ideal";
+
+    const payload = {
       sessionId,
       customer: {
+        name,
         email,
         phone,
-        name,
+        street,
         postalCode: zip,
         city,
-        country: 'NL'
+        country: "NL"
       },
-      paymentMethod,
+      paymentMethod: paymentOpt,
       source: trafficSource,
       landingPage: window.location.pathname + window.location.search,
       initialColor,
-      finalColor: primaryKamado.colorName || currentColor.name,
-      modelName: primaryKamado.modelName || KAMADO_MODELS[activeModelKey]?.name || '23" Premium',
-      sizeInch: primaryKamado.sizeInch || KAMADO_MODELS[activeModelKey]?.sizeInch || '23',
+      finalColor: currentColor.name,
+      modelName: kamadoItem.name || `${activeModelKey}″ CraftKamado`,
+      sizeInch: kamadoItem.sizeInch || "23",
       items: cart,
-      accessories,
-      kamadoPriceEur: kamadoPrice,
-      accessoriesPriceEur: accPrice,
+      accessories: cart.filter(i => i.type === "accessory"),
+      kamadoPriceEur: kamadoSub,
+      accessoriesPriceEur: accSub,
       totalAmountEur: totalAmount
     };
 
     try {
-      const resp = await fetch('/api/market-test/purchase-intent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(intentPayload)
+      const resp = await fetch("/api/market-test/purchase-intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
       });
 
-      const data = await resp.json();
       if (!resp.ok) {
-        throw new Error(data.error || 'Fout bij het verwerken.');
+        const errJson = await resp.json().catch(() => ({}));
+        throw new Error(errJson.error || (currentLang === "en" ? "An error occurred while saving." : "Er trad een fout op bij het opslaan."));
       }
 
-      trackEvent('purchase_intent', {
-        intentId: data.intentId,
+      trackEvent("purchase_intent", {
+        model: payload.modelName,
+        color: payload.finalColor,
         totalEur: totalAmount,
         email
       });
 
-      // Close checkout modal & Open exact Dutch legal demand modal
+      // Close checkout modal & Open exact Dutch / English demand notice modal
       closeCheckout();
       showDemandNoticeModal(email);
 
@@ -674,123 +807,134 @@
       cart = [];
       saveCart();
     } catch (err) {
-      errorEl.textContent = err.message || 'Er trad een fout op. Probeer het opnieuw.';
+      errorEl.textContent = err.message || (currentLang === "en" ? "An error occurred. Please try again." : "Er trad een fout op. Probeer het opnieuw.");
     } finally {
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Doorgaan naar betaling';
+      submitBtn.textContent = TRANSLATIONS[currentLang].submitIntentBtn;
     }
   }
 
   function showDemandNoticeModal(customerEmail) {
-    const noticeModal = document.getElementById('intentNoticeBackdrop');
-    const emailContainer = document.getElementById('vipEmailContainer');
-    const emailInput = document.getElementById('vipEmailInput');
-    const notifyBtn = document.getElementById('vipNotifyBtn');
-    const confirmationMsg = document.getElementById('vipConfirmationMsg');
+    const noticeModal = document.getElementById("intentNoticeBackdrop");
+    const emailContainer = document.getElementById("vipEmailContainer");
+    const emailInput = document.getElementById("vipEmailInput");
+    const notifyBtn = document.getElementById("vipNotifyBtn");
+    const confirmationMsg = document.getElementById("vipConfirmationMsg");
+    const t = TRANSLATIONS[currentLang];
 
-    confirmationMsg.style.display = 'none';
+    confirmationMsg.style.display = "none";
+    notifyBtn.style.display = "block";
+    notifyBtn.textContent = t.vipNotifyBtn;
 
     if (customerEmail) {
-      // Email was already provided in checkout!
-      emailContainer.style.display = 'none';
+      // Email was already provided in checkout! Do NOT ask again!
+      emailContainer.style.display = "none";
       notifyBtn.onclick = () => {
-        confirmationMsg.innerHTML = `✓ Dankjewel! We hebben je e-mailadres (<strong>${customerEmail}</strong>) genoteerd. Zodra jouw gekozen Kamado beschikbaar is, ontvang je direct bericht als eerste!`;
-        confirmationMsg.style.display = 'block';
-        notifyBtn.style.display = 'none';
+        confirmationMsg.innerHTML = t.vipAckMsg.replace("{email}", customerEmail);
+        confirmationMsg.style.display = "block";
+        notifyBtn.style.display = "none";
       };
     } else {
-      // Edge case: prompt email
-      emailContainer.style.display = 'block';
+      // Prompt email if missing
+      emailContainer.style.display = "block";
       notifyBtn.onclick = async () => {
         const mail = emailInput.value.trim();
-        if (!mail || !mail.includes('@')) {
-          alert('Vul een geldig e-mailadres in.');
+        if (!mail || !mail.includes("@")) {
+          alert(currentLang === "en" ? "Please enter a valid email address." : "Vul een geldig e-mailadres in.");
           return;
         }
-        confirmationMsg.innerHTML = `✓ Dankjewel! We hebben je e-mailadres (<strong>${mail}</strong>) genoteerd. Zodra jouw gekozen Kamado beschikbaar is, ontvang je direct bericht als eerste!`;
-        confirmationMsg.style.display = 'block';
-        notifyBtn.style.display = 'none';
-        emailContainer.style.display = 'none';
+        confirmationMsg.innerHTML = t.vipAckMsg.replace("{email}", mail);
+        confirmationMsg.style.display = "block";
+        notifyBtn.style.display = "none";
+        emailContainer.style.display = "none";
       };
     }
 
-    noticeModal.classList.add('open');
+    noticeModal?.classList.add("open");
   }
 
   // --- INITIALIZATION ---
-  document.addEventListener('DOMContentLoaded', () => {
-    // 1. Initial page tracking
-    trackEvent('page_view', {
-      source: trafficSource,
-      referrer: document.referrer,
-      url: window.location.href
-    });
-
-    // 2. Load stored cart
+  document.addEventListener("DOMContentLoaded", () => {
     loadCart();
 
-    // 3. Setup size tabs (18 Basic / 18 Premium / 21 / 23 / 27)
-    document.querySelectorAll('.size-tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        document.querySelectorAll('.size-tab').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        activeModelKey = tab.dataset.modelKey;
+    // 1. Language Toggle Buttons
+    document.getElementById("btnLangNl")?.addEventListener("click", () => setLanguage("nl"));
+    document.getElementById("btnLangEn")?.addEventListener("click", () => setLanguage("en"));
+
+    // 2. Initial Telemetry
+    trackEvent("page_view", {
+      path: window.location.pathname,
+      url: window.location.href,
+      lang: currentLang
+    });
+
+    // 3. Size Tabs
+    const tabs = document.querySelectorAll(".size-tab");
+    tabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        tabs.forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        activeModelKey = tab.getAttribute("data-model-key");
         updateModelConfigurator();
-        trackEvent('change_config', { model: activeModelKey, color: currentColor.name });
       });
     });
 
-    // 4. Setup colors (Black, Burgundy, Blue, Green, Orange, Beige, Yellow)
-    document.querySelectorAll('.color-dot').forEach((dot, idx) => {
-      dot.addEventListener('click', () => {
-        document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
-        dot.classList.add('active');
-        const colorName = dot.dataset.colorName;
-        currentColor = {
-          id: dot.dataset.colorId,
-          name: colorName,
-          displayName: dot.dataset.displayName
+    // 4. Color dots
+    const dots = document.querySelectorAll(".color-dot");
+    dots.forEach(dot => {
+      dot.addEventListener("click", () => {
+        dots.forEach(d => d.classList.remove("active"));
+        dot.classList.add("active");
+
+        const cid = dot.getAttribute("data-color-id");
+        const cObj = COLOR_OPTIONS.find(c => c.id === cid) || {
+          id: cid,
+          name: dot.getAttribute("data-color-name"),
+          displayName: { nl: dot.getAttribute("data-display-name"), en: dot.getAttribute("data-display-name") }
         };
-        if (!initialColor) initialColor = colorName;
-        document.getElementById('selectedColorName').textContent = currentColor.displayName;
-        trackEvent('change_config', { model: activeModelKey, color: colorName });
+
+        currentColor = cObj;
+        const colorLabel = document.getElementById("selectedColorName");
+        if (colorLabel) colorLabel.textContent = cObj.displayName[currentLang] || cObj.displayName.nl || cObj.name;
+
+        trackEvent("select_color", { color: currentColor.name });
       });
     });
 
-    // 5. Setup cart triggers
-    document.getElementById('cartBtn').addEventListener('click', openCart);
-    document.getElementById('closeCartBtn').addEventListener('click', closeCart);
-    document.getElementById('cartBackdrop').addEventListener('click', closeCart);
+    // 5. Cart Drawer Triggers
+    document.getElementById("cartBtn")?.addEventListener("click", openCart);
+    document.getElementById("closeCartBtn")?.addEventListener("click", closeCart);
+    document.getElementById("cartBackdrop")?.addEventListener("click", closeCart);
 
     // 6. Add to cart actions
-    document.getElementById('addModelToCartBtn').addEventListener('click', addModelToCart);
-    document.getElementById('directCheckoutBtn').addEventListener('click', () => {
+    document.getElementById("addModelToCartBtn")?.addEventListener("click", addModelToCart);
+    document.getElementById("directCheckoutBtn")?.addEventListener("click", () => {
       addModelToCart();
       openCheckout();
     });
 
     // 7. Checkout triggers
-    document.getElementById('goToCheckoutBtn').addEventListener('click', openCheckout);
-    document.getElementById('closeCheckoutBtn').addEventListener('click', closeCheckout);
+    document.getElementById("goToCheckoutBtn")?.addEventListener("click", openCheckout);
+    document.getElementById("closeCheckoutBtn")?.addEventListener("click", closeCheckout);
 
     // 8. Payment selector in checkout
-    document.querySelectorAll('.payment-opt').forEach(opt => {
-      opt.addEventListener('click', () => {
-        document.querySelectorAll('.payment-opt').forEach(o => o.classList.remove('active'));
-        opt.classList.add('active');
+    document.querySelectorAll(".payment-opt").forEach(opt => {
+      opt.addEventListener("click", () => {
+        document.querySelectorAll(".payment-opt").forEach(o => o.classList.remove("active"));
+        opt.classList.add("active");
       });
     });
 
     // 9. Form submit & contact tracking
     setupContactTracking();
-    document.getElementById('checkoutForm').addEventListener('submit', handleCheckoutSubmit);
+    document.getElementById("checkoutForm")?.addEventListener("submit", handleCheckoutSubmit);
 
     // 10. Close notice modal
-    document.getElementById('closeNoticeBtn').addEventListener('click', () => {
-      document.getElementById('intentNoticeBackdrop').classList.remove('open');
+    document.getElementById("closeNoticeBtn")?.addEventListener("click", () => {
+      document.getElementById("intentNoticeBackdrop")?.classList.remove("open");
     });
 
-    // Render initial configurator
-    updateModelConfigurator();
+    // Set initial language & render
+    setLanguage(currentLang);
   });
 })();

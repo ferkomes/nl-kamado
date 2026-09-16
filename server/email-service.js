@@ -36,7 +36,7 @@ Initial color: ${intent.initialColor || '-'} | Final color: ${intent.finalColor 
   const htmlBody = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #222; line-height: 1.6;">
       <div style="background-color: #0c0d10; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
-        <h2 style="color: #ff6b35; margin: 0; font-size: 20px;">KundiKamado Nederland – New Purchase Intent</h2>
+        <h2 style="color: #ff6b35; margin: 0; font-size: 20px;">CraftKamado Nederland – New Purchase Intent</h2>
         <p style="color: #bbb; margin: 6px 0 0 0; font-size: 14px;">Marktvalidatie Inzending (~1 Maand Vraagtest)</p>
       </div>
 
@@ -114,8 +114,8 @@ Initial color: ${intent.initialColor || '-'} | Final color: ${intent.finalColor 
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        personalizations: [{ to: [{ email: recipient, name: 'KundiKamado Admin' }] }],
-        from: { email: 'noreply@kundikamado.nl', name: 'KundiKamado NL Demand Test' },
+        personalizations: [{ to: [{ email: recipient, name: 'CraftKamado Admin' }] }],
+        from: { email: 'noreply@craftkamado.nl', name: 'CraftKamado NL Demand Test' },
         subject: subject,
         content: [
           { type: 'text/plain', value: plainText },

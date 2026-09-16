@@ -199,7 +199,7 @@ async function recordPurchaseIntent(env, intentData) {
   const accPrice = accessories.reduce((sum, a) => sum + (a.price || 0) * (a.qty || 1), 0);
   const totalAmount = intentData.totalAmountEur || (kamadoPrice + accPrice);
 
-  const modelName = kamadoItem.name || intentData.modelName || 'KundiKamado';
+  const modelName = kamadoItem.name || intentData.modelName || 'CraftKamado';
   const sizeInch = String(kamadoItem.sizeInch || intentData.sizeInch || '23');
   const initialColor = intentData.initialColor || intentData.colorName || 'Black';
   const finalColor = intentData.finalColor || kamadoItem.colorName || intentData.colorName || 'Black';
@@ -373,7 +373,7 @@ async function getMarketStats(db) {
     { key: 'Burgundy', name: 'Burgundy (Bordeaux Rood)', hex: '#781d2e', count: 0, share: 0 },
     { key: 'Blue', name: 'Blue (Marine Blauw)', hex: '#1b3f75', count: 0, share: 0 },
     { key: 'Green', name: 'Green (Bosgroen)', hex: '#235338', count: 0, share: 0 },
-    { key: 'Orange', name: 'Orange (Kundi Oranje)', hex: '#df5417', count: 0, share: 0 },
+    { key: 'Orange', name: 'Orange (Craft Oranje)', hex: '#df5417', count: 0, share: 0 },
     { key: 'Beige', name: 'Beige (Zand Beige)', hex: '#d6cbb6', count: 0, share: 0 },
     { key: 'Yellow', name: 'Yellow (Warm Okergeel)', hex: '#dca326', count: 0, share: 0 }
   ];

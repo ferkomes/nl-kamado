@@ -46,7 +46,7 @@ let db;
 let mockEnv;
 let workerModule;
 
-describe('KundiKamado Netherlands Market Test Suite', () => {
+describe('CraftKamado Netherlands Market Test Suite', () => {
   before(async () => {
     const schemaSql = fs.readFileSync(path.join(__dirname, '../schema.sql'), 'utf8');
     db = createMockD1();
@@ -56,7 +56,7 @@ describe('KundiKamado Netherlands Market Test Suite', () => {
       DB: db,
       ADMIN_PASSWORD: 'test-admin-pwd',
       NOTIFY_EMAIL: 'info@kundikamado.hu',
-      STORE_NAME: 'KundiKamado Nederland'
+      STORE_NAME: 'CraftKamado Nederland'
     };
 
     workerModule = (await import('../worker.js')).default;
@@ -123,7 +123,7 @@ describe('KundiKamado Netherlands Market Test Suite', () => {
 
     test('POST /api/market-test/cart-update registers cart reach & abandoned item', async () => {
       const items = [
-        { id: 'kamado_23', type: 'kamado', name: 'KundiKamado 23″', price: 1019, qty: 1 },
+        { id: 'kamado_23', type: 'kamado', name: 'CraftKamado 23″', price: 1019, qty: 1 },
         { id: 'acc_rotisserie_23', type: 'accessory', name: 'Rotisserie (23″)', price: 159, qty: 1 }
       ];
 
@@ -315,7 +315,7 @@ describe('KundiKamado Netherlands Market Test Suite', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sessionId: abSessionId,
-          items: [{ id: 'kamado_27', name: 'KundiKamado 27″', price: 1319, qty: 1 }],
+          items: [{ id: 'kamado_27', name: 'CraftKamado 27″', price: 1319, qty: 1 }],
           totalAmount: 1319,
           lastStep: 'checkout',
           email: 'abandoned_user@example.nl',
@@ -341,7 +341,7 @@ describe('KundiKamado Netherlands Market Test Suite', () => {
       assert.equal(res.status, 200);
       assert.ok(res.headers.get('Content-Type').includes('text/html'));
       const body = await res.text();
-      assert.ok(body.includes('KundiKamado Nederland'));
+      assert.ok(body.includes('CraftKamado Nederland'));
       assert.ok(body.includes('Doorgaan naar betaling'));
       assert.ok(!body.includes('Marktintroductie:'));
     });
@@ -352,7 +352,7 @@ describe('KundiKamado Netherlands Market Test Suite', () => {
       assert.equal(res.status, 200);
       assert.ok(res.headers.get('Content-Type').includes('text/html'));
       const body = await res.text();
-      assert.ok(body.includes('Markt-Test Dashboard'));
+      assert.ok(body.includes('Market Demand Analytics'));
       assert.ok(body.includes('Visitors'));
       assert.ok(body.includes('Potential Revenue'));
     });

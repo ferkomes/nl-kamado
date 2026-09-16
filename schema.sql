@@ -1,4 +1,4 @@
--- KundiKamado Netherlands Market Demand Test Database Schema
+-- CraftKamado Netherlands Market Demand Test Database Schema
 
 CREATE TABLE IF NOT EXISTS market_sessions (
   session_id TEXT PRIMARY KEY,
