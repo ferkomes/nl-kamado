@@ -16,7 +16,7 @@ function createMockD1() {
       return {
         _params: [],
         bind(...args) {
-          this._params = args;
+          this._params = args.map(v => v === undefined ? null : v);
           return this;
         },
         async run() {
@@ -97,14 +97,14 @@ describe('KundiKamado Netherlands Market Test Suite', () => {
   describe('2. Funnel Tracking & Cart Telemetry via Worker API', () => {
     const sessionId = 'test_session_nl_001';
 
-    test('POST /api/market-test/track registers page_view visitor', async () => {
+    test('POST /api/market-test/track registers page_view visitor with source attribution', async () => {
       const req = new Request('http://localhost/api/market-test/track', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sessionId,
           eventType: 'page_view',
-          payload: { path: '/' }
+          payload: { path: '/', source: 'Facebook Ad', initialColor: 'Black' }
         })
       });
 
@@ -115,6 +115,7 @@ describe('KundiKamado Netherlands Market Test Suite', () => {
 
       const session = await db.prepare('SELECT * FROM market_sessions WHERE session_id = ?').bind(sessionId).first();
       assert.ok(session);
+      assert.equal(session.source, 'Facebook Ad');
       assert.equal(session.reached_cart, 0);
       assert.equal(session.reached_checkout, 0);
       assert.equal(session.reached_intent, 0);
@@ -122,8 +123,8 @@ describe('KundiKamado Netherlands Market Test Suite', () => {
 
     test('POST /api/market-test/cart-update registers cart reach & abandoned item', async () => {
       const items = [
-        { id: 'kamado_23_black_bubble', type: 'kamado', name: 'KundiKamado 23″', price: 1019, qty: 1 },
-        { id: 'acc_rotisserie_23', type: 'accessory', name: 'Draaispit / Rotisserie', price: 159, qty: 1 }
+        { id: 'kamado_23', type: 'kamado', name: 'KundiKamado 23″', price: 1019, qty: 1 },
+        { id: 'acc_rotisserie_23', type: 'accessory', name: 'Rotisserie (23″)', price: 159, qty: 1 }
       ];
 
       const req = new Request('http://localhost/api/market-test/cart-update', {
@@ -133,7 +134,8 @@ describe('KundiKamado Netherlands Market Test Suite', () => {
           sessionId,
           items,
           totalAmount: 1178,
-          lastStep: 'cart'
+          lastStep: 'cart',
+          source: 'Facebook Ad'
         })
       });
 
@@ -169,40 +171,39 @@ describe('KundiKamado Netherlands Market Test Suite', () => {
     });
   });
 
-  describe('3. Purchase Intent Submission & VIP Notice', () => {
+  describe('3. Purchase Intent Submission & Regional Capture', () => {
     const sessionId = 'test_session_nl_001';
 
-    test('POST /api/market-test/purchase-intent stores lead and marks session converted', async () => {
+    test('POST /api/market-test/purchase-intent stores lead with models, colors and prices', async () => {
       const intentPayload = {
         sessionId,
         customer: {
           name: 'Pieter van Dijk',
           email: 'pieter@example.nl',
           phone: '0612345678',
-          street: 'Keizersgracht',
-          houseNumber: '101',
-          postalCode: '1015 CJ',
+          postalCode: '1015 CR',
           city: 'Amsterdam',
           country: 'NL'
         },
         paymentMethod: 'ideal',
-        modelId: '23',
+        source: 'Facebook Ad',
+        landingPage: '/',
+        initialColor: 'Black',
+        finalColor: 'Blue',
+        modelName: '23" Premium',
         sizeInch: '23',
-        colorId: 'black',
-        colorName: 'Onyx Zwart',
-        texture: 'Bubble Glaze (Ambachtelijk reliëf)',
         items: [
-          { id: 'kamado_23', type: 'kamado', name: 'KundiKamado 23″', price: 1019, qty: 1 },
-          { id: 'acc_rotisserie_23', type: 'accessory', name: 'Rotisserie', price: 159, qty: 1 },
-          { id: 'acc_cover_23', type: 'accessory', name: 'Beschermhoes', price: 49, qty: 1 }
+          { id: 'kamado_23', type: 'kamado', name: '23" Premium', colorName: 'Blue', price: 1019, qty: 1 },
+          { id: 'acc_rotisserie_23', type: 'accessory', name: 'Rotisserie 23"', price: 159, qty: 1 },
+          { id: 'acc_pizza_23', type: 'accessory', name: 'Pizza Stone 23"', price: 69, qty: 1 }
         ],
         accessories: [
-          { name: 'Rotisserie', qty: 1, price: 159 },
-          { name: 'Beschermhoes', qty: 1, price: 49 }
+          { name: 'Rotisserie 23"', qty: 1, price: 159 },
+          { name: 'Pizza Stone 23"', qty: 1, price: 69 }
         ],
-        subtotalEur: 1227,
-        shippingFeeEur: 0,
-        totalAmountEur: 1227
+        kamadoPriceEur: 1019,
+        accessoriesPriceEur: 228,
+        totalAmountEur: 1247
       };
 
       const req = new Request('http://localhost/api/market-test/purchase-intent', {
@@ -220,8 +221,11 @@ describe('KundiKamado Netherlands Market Test Suite', () => {
       const intentRow = await db.prepare('SELECT * FROM purchase_intents WHERE id = ?').bind(data.intentId).first();
       assert.ok(intentRow);
       assert.equal(intentRow.email, 'pieter@example.nl');
-      assert.equal(intentRow.size_inch, '23');
-      assert.equal(intentRow.total_amount_eur, 1227);
+      assert.equal(intentRow.model_name, '23" Premium');
+      assert.equal(intentRow.final_color, 'Blue');
+      assert.equal(intentRow.source, 'Facebook Ad');
+      assert.equal(intentRow.postal_code, '1015 CR');
+      assert.equal(intentRow.total_amount_eur, 1247);
 
       const session = await db.prepare('SELECT * FROM market_sessions WHERE session_id = ?').bind(sessionId).first();
       assert.equal(session.reached_intent, 1);
@@ -240,7 +244,7 @@ describe('KundiKamado Netherlands Market Test Suite', () => {
       assert.equal(res.status, 401);
     });
 
-    test('GET /api/market-test/stats returns complete metrics with correct password', async () => {
+    test('GET /api/market-test/stats returns 6 Big Numbers & Breakdowns', async () => {
       const req = new Request('http://localhost/api/market-test/stats', {
         method: 'GET',
         headers: { 'Authorization': 'Bearer test-admin-pwd' }
@@ -249,27 +253,37 @@ describe('KundiKamado Netherlands Market Test Suite', () => {
       assert.equal(res.status, 200);
       const stats = await res.json();
 
-      assert.ok(stats.overview);
-      assert.equal(stats.overview.totalVisitors, 1);
-      assert.equal(stats.overview.totalCarts, 1);
-      assert.equal(stats.overview.totalCheckouts, 1);
-      assert.equal(stats.overview.totalIntents, 1);
-      assert.equal(stats.overview.hypotheticalRevenue, 1227);
-      assert.equal(stats.overview.averageOrderValue, 1227);
-      assert.equal(stats.overview.totalKamadoUnits, 1);
+      // Verify top 6 big numbers:
+      assert.ok(stats.kpis);
+      assert.equal(stats.kpis.visitors, 1);
+      assert.equal(stats.kpis.addToCart, 1);
+      assert.equal(stats.kpis.checkout, 1);
+      assert.equal(stats.kpis.purchaseIntent, 1);
+      assert.equal(stats.kpis.conversionPct, 1.0);
+      assert.equal(stats.kpis.potentialRevenue, 1247);
 
-      assert.ok(stats.funnel);
-      assert.equal(stats.funnel.cartRate, 1.0);
-      assert.equal(stats.funnel.intentRate, 1.0);
-
+      // Models breakdown: 18 Basic, 18 Premium, 21, 23, 27
       assert.ok(stats.models);
-      const m23 = stats.models.find(m => m.size === '23');
+      const m23 = stats.models.find(m => m.key === '23');
       assert.equal(m23.count, 1);
-      assert.equal(m23.revenue, 1019);
 
-      assert.ok(stats.accessories.length > 0);
+      // Colors breakdown:
+      assert.ok(stats.colors);
+      const blueColor = stats.colors.find(c => c.key === 'Blue');
+      assert.equal(blueColor.count, 1);
+
+      // Accessories:
+      assert.ok(stats.accessories.length >= 2);
+
+      // Concrete Configurations:
+      assert.ok(stats.configurations.length > 0);
+      assert.ok(stats.configurations[0].description.includes('23'));
+      assert.ok(stats.configurations[0].description.includes('Blue'));
+
+      // Intents feed:
       assert.equal(stats.intents.length, 1);
       assert.equal(stats.intents[0].email, 'pieter@example.nl');
+      assert.equal(stats.intents[0].source, 'Facebook Ad');
     });
 
     test('GET /api/market-test/export-intents.csv outputs valid CSV', async () => {
@@ -281,8 +295,8 @@ describe('KundiKamado Netherlands Market Test Suite', () => {
       assert.ok(res.headers.get('Content-Type').includes('text/csv'));
       const text = await res.text();
       assert.ok(text.includes('pieter@example.nl'));
-      assert.ok(text.includes('1227'));
-      assert.ok(text.includes('23 inch'));
+      assert.ok(text.includes('Facebook Ad'));
+      assert.ok(text.includes('1247'));
     });
   });
 
@@ -293,7 +307,7 @@ describe('KundiKamado Netherlands Market Test Suite', () => {
       await workerModule.fetch(new Request('http://localhost/api/market-test/track', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId: abSessionId, eventType: 'page_view' })
+        body: JSON.stringify({ sessionId: abSessionId, eventType: 'page_view', payload: { source: 'Google Search' } })
       }), mockEnv);
 
       await workerModule.fetch(new Request('http://localhost/api/market-test/cart-update', {
@@ -305,7 +319,7 @@ describe('KundiKamado Netherlands Market Test Suite', () => {
           totalAmount: 1319,
           lastStep: 'checkout',
           email: 'abandoned_user@example.nl',
-          name: 'Klaas Bakker'
+          source: 'Google Search'
         })
       }), mockEnv);
 
@@ -314,16 +328,14 @@ describe('KundiKamado Netherlands Market Test Suite', () => {
       }), mockEnv);
       const stats = await statsRes.json();
 
-      assert.equal(stats.overview.totalAbandoned, 1);
-      assert.equal(stats.overview.lostRevenue, 1319);
       assert.equal(stats.abandoned.length, 1);
       assert.equal(stats.abandoned[0].email, 'abandoned_user@example.nl');
-      assert.equal(stats.abandoned[0].last_step, 'checkout');
+      assert.equal(stats.abandoned[0].source, 'Google Search');
     });
   });
 
   describe('6. Web Page Routing', () => {
-    test('GET / serves Dutch storefront HTML', async () => {
+    test('GET / serves Dutch storefront HTML without test indicators', async () => {
       const req = new Request('http://localhost/', { method: 'GET' });
       const res = await workerModule.fetch(req, mockEnv);
       assert.equal(res.status, 200);
@@ -331,7 +343,7 @@ describe('KundiKamado Netherlands Market Test Suite', () => {
       const body = await res.text();
       assert.ok(body.includes('KundiKamado Nederland'));
       assert.ok(body.includes('Doorgaan naar betaling'));
-      assert.ok(body.includes('Marktintroductie'));
+      assert.ok(!body.includes('Marktintroductie:'));
     });
 
     test('GET /admin/market-test serves Admin Dashboard HTML', async () => {
@@ -340,8 +352,9 @@ describe('KundiKamado Netherlands Market Test Suite', () => {
       assert.equal(res.status, 200);
       assert.ok(res.headers.get('Content-Type').includes('text/html'));
       const body = await res.text();
-      assert.ok(body.includes('Marktvalidatie Dashboard'));
-      assert.ok(body.includes('Aankoopintenties'));
+      assert.ok(body.includes('Markt-Test Dashboard'));
+      assert.ok(body.includes('Visitors'));
+      assert.ok(body.includes('Potential Revenue'));
     });
   });
 });

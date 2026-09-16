@@ -1,68 +1,96 @@
 /**
  * Email notification service for new PURCHASE_INTENT
+ * Sent ONLY upon final PURCHASE_INTENT submit
  */
 
 async function sendPurchaseIntentNotification(env, intent) {
   const recipient = env.NOTIFY_EMAIL || 'info@kundikamado.hu';
-  const totalFormatted = '€' + Number(intent.totalAmountEur || 0).toLocaleString('nl-NL') + ',-';
+  const totalFormatted = '€' + Number(intent.totalAmountEur || 0).toLocaleString('nl-NL');
+  const kamadoFormatted = '€' + Number(intent.kamadoPriceEur || 0).toLocaleString('nl-NL');
+  const accFormatted = '€' + Number(intent.accessoriesPriceEur || 0).toLocaleString('nl-NL');
 
-  let itemsHtml = (intent.items || []).map(item => {
-    let meta = '';
-    if (item.type === 'kamado') {
-      meta = `<br><small style="color: #666;">Kleur: ${item.colorName || item.colorId} | Afwerking: ${item.textureName || item.textureId}</small>`;
-    } else if (item.sizeInch) {
-      meta = `<br><small style="color: #666;">Geschikt voor: ${item.sizeInch}″ Kamado</small>`;
-    }
-    return `<tr>
-      <td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>${item.qty}x</strong> ${item.name}${meta}</td>
-      <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">€${Number(item.price * item.qty).toLocaleString('nl-NL')},-</td>
-    </tr>`;
-  }).join('');
+  const lines = [];
+  lines.push(`${intent.modelName || 'Kamado'} – ${intent.finalColor || intent.colorName || 'Black'} ×1`);
 
-  const subject = `🔥 Nieuwe Aankoopintentie (NL Markt-Test): ${intent.sizeInch}″ Kamado - ${totalFormatted} van ${intent.customer.name}`;
+  (intent.accessories || []).forEach(acc => {
+    lines.push(`${acc.name} ×${acc.qty || 1}`);
+  });
+
+  const subject = `New NL Purchase Intent – ${totalFormatted}`;
+
+  const plainText = `
+New NL Purchase Intent – ${totalFormatted}
+
+${lines.join('\n')}
+
+Kamado: ${kamadoFormatted} | Accessories: ${accFormatted} | Total: ${totalFormatted}
+Customer: ${intent.customer?.email || intent.email || 'Geen email'}
+Name: ${intent.customer?.name || intent.name || '-'}
+Phone: ${intent.customer?.phone || intent.phone || '-'}
+Region: ${intent.customer?.postalCode || intent.postalCode || ''} ${intent.customer?.city || intent.city || ''} (NL)
+Source: ${intent.source || 'Direct'}
+Landing page: ${intent.landingPage || '/'}
+Initial color: ${intent.initialColor || '-'} | Final color: ${intent.finalColor || intent.colorName || '-'}
+  `.trim();
 
   const htmlBody = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333; line-height: 1.5;">
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #222; line-height: 1.6;">
       <div style="background-color: #0c0d10; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
-        <h2 style="color: #ff6b35; margin: 0;">KundiKamado Nederland</h2>
-        <p style="color: #aaa; margin: 5px 0 0 0; font-size: 14px;">Nieuwe Aankoopintentie Geregistreerd (Marktvalidatie)</p>
+        <h2 style="color: #ff6b35; margin: 0; font-size: 20px;">KundiKamado Nederland – New Purchase Intent</h2>
+        <p style="color: #bbb; margin: 6px 0 0 0; font-size: 14px;">Marktvalidatie Inzending (~1 Maand Vraagtest)</p>
       </div>
 
-      <div style="padding: 24px; border: 1px solid #eee; border-top: none; border-radius: 0 0 8px 8px; background: #fafafa;">
-        <div style="background: #fff; padding: 16px; border-radius: 6px; border-left: 4px solid #ff6b35; margin-bottom: 20px;">
-          <h3 style="margin-top: 0; color: #222;">Klantgegevens (Nederland)</h3>
-          <p style="margin: 4px 0;"><strong>Naam:</strong> ${intent.customer.name}</p>
-          <p style="margin: 4px 0;"><strong>E-mail:</strong> <a href="mailto:${intent.customer.email}">${intent.customer.email}</a></p>
-          <p style="margin: 4px 0;"><strong>Telefoon:</strong> <a href="tel:${intent.customer.phone}">${intent.customer.phone}</a></p>
-          <p style="margin: 4px 0;"><strong>Adres:</strong> ${intent.customer.street} ${intent.customer.houseNumber}, ${intent.customer.postalCode} ${intent.customer.city} (NL)</p>
-          <p style="margin: 4px 0;"><strong>Gekozen Betaalmethode:</strong> ${(intent.paymentMethod || 'iDEAL').toUpperCase()}</p>
+      <div style="padding: 24px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px; background: #ffffff;">
+        <div style="font-size: 18px; font-weight: bold; color: #ff6b35; margin-bottom: 16px;">
+          Totaalwaarde: ${totalFormatted}
         </div>
 
-        <h3 style="color: #222; margin-bottom: 10px;">Geselecteerde Configuratie & Artikelen</h3>
-        <table style="width: 100%; border-collapse: collapse; background: #fff; border-radius: 6px; overflow: hidden; margin-bottom: 20px;">
-          <thead>
-            <tr style="background: #f0f0f0;">
-              <th style="padding: 8px; text-align: left;">Artikel</th>
-              <th style="padding: 8px; text-align: right;">Prijs</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${itemsHtml}
-            <tr>
-              <td style="padding: 12px 8px; font-weight: bold; border-top: 2px solid #ddd;">Totaalbedrag (Hypothetisch):</td>
-              <td style="padding: 12px 8px; font-weight: bold; text-align: right; border-top: 2px solid #ddd; color: #ff6b35; font-size: 16px;">${totalFormatted}</td>
-            </tr>
-          </tbody>
+        <div style="background: #f8fafc; padding: 16px; border-radius: 6px; border-left: 4px solid #ff6b35; margin-bottom: 20px;">
+          <h4 style="margin: 0 0 8px 0; color: #111;">Gekozen Configuratie:</h4>
+          <div style="font-size: 15px; font-weight: 600; color: #0f172a; margin-bottom: 6px;">
+            ${intent.modelName || 'Kamado'} – ${intent.finalColor || intent.colorName || 'Black'} ×1
+          </div>
+          ${(intent.accessories || []).map(a => `<div style="font-size: 14px; color: #475569;">+ ${a.name} ×${a.qty || 1}</div>`).join('')}
+          <div style="margin-top: 10px; font-size: 13px; color: #64748b;">
+            Kamado: <strong>${kamadoFormatted}</strong> | Accessoires: <strong>${accFormatted}</strong> | Totaal: <strong>${totalFormatted}</strong>
+          </div>
+        </div>
+
+        <table style="width: 100%; font-size: 14px; border-collapse: collapse; margin-bottom: 20px;">
+          <tr>
+            <td style="padding: 6px 0; color: #64748b; width: 140px;">Klant:</td>
+            <td style="padding: 6px 0;"><strong>${intent.customer?.name || intent.name || '-'}</strong> (<a href="mailto:${intent.customer?.email || intent.email}">${intent.customer?.email || intent.email}</a>)</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #64748b;">Telefoon:</td>
+            <td style="padding: 6px 0;"><a href="tel:${intent.customer?.phone || intent.phone}">${intent.customer?.phone || intent.phone || '-'}</a></td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #64748b;">Regio:</td>
+            <td style="padding: 6px 0;"><strong>${intent.customer?.postalCode || intent.postalCode || ''} ${intent.customer?.city || intent.city || ''} (NL)</strong></td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #64748b;">Herkomst (Source):</td>
+            <td style="padding: 6px 0;"><strong style="color: #2563eb;">${intent.source || 'Direct'}</strong></td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #64748b;">Landing Page:</td>
+            <td style="padding: 6px 0;"><code>${intent.landingPage || '/'}</code></td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #64748b;">Kleurkeuze verloop:</td>
+            <td style="padding: 6px 0;">Eerste: <em>${intent.initialColor || '-'}</em> ➔ Definitief: <strong>${intent.finalColor || intent.colorName || '-'}</strong></td>
+          </tr>
         </table>
 
-        <div style="background: #eef2ff; border: 1px solid #c7d2fe; padding: 12px; border-radius: 6px; font-size: 13px; color: #3730a3;">
-          ℹ️ <strong>Herinnering Markt-Test:</strong> De klant heeft te zien gekregen dat het product binnenkort beschikbaar is in Nederland en dat er niets in rekening is gebracht. Deze lead is opgeslagen in het admin dashboard onder <code>/admin/market-test</code>.
+        <div style="font-size: 12px; color: #94a3b8; border-top: 1px solid #f1f5f9; padding-top: 12px;">
+          Dit is een automatische notificatie van de Nederlandse vraagtest. Alle statistieken zijn te vinden op <a href="https://nl-kamado.ferkomes.workers.dev/admin/market-test">/admin/market-test</a>.
         </div>
       </div>
     </div>
   `;
 
-  // 1. Try internal/configured mail sender service
+  // 1. Try configured mail sender service
   const mailSenderUrl = env.MAIL_SENDER_URL || 'https://mail-sender.ferkomes.workers.dev';
   try {
     const res = await fetch(mailSenderUrl, {
@@ -72,17 +100,15 @@ async function sendPurchaseIntentNotification(env, intent) {
         to: recipient,
         subject: subject,
         html: htmlBody,
-        text: `Nieuwe aankoopintentie van ${intent.customer.name} (${intent.customer.email}): ${intent.sizeInch}″ Kamado - Totaal: ${totalFormatted}`
+        text: plainText
       })
     });
-    if (res.ok) {
-      return { success: true, method: 'mail-sender' };
-    }
+    if (res.ok) return { success: true, method: 'mail-sender' };
   } catch (err) {
-    console.warn('Mail-sender service error:', err);
+    console.warn('Mail-sender error:', err);
   }
 
-  // 2. Fallback: MailChannels API (Cloudflare Worker standard)
+  // 2. MailChannels fallback
   try {
     const mcRes = await fetch('https://api.mailchannels.net/tx/v1/send', {
       method: 'POST',
@@ -91,17 +117,18 @@ async function sendPurchaseIntentNotification(env, intent) {
         personalizations: [{ to: [{ email: recipient, name: 'KundiKamado Admin' }] }],
         from: { email: 'noreply@kundikamado.nl', name: 'KundiKamado NL Demand Test' },
         subject: subject,
-        content: [{ type: 'text/html', value: htmlBody }]
+        content: [
+          { type: 'text/plain', value: plainText },
+          { type: 'text/html', value: htmlBody }
+        ]
       })
     });
-    if (mcRes.ok) {
-      return { success: true, method: 'mailchannels' };
-    }
+    if (mcRes.ok) return { success: true, method: 'mailchannels' };
   } catch (err) {
-    console.warn('MailChannels fallback error:', err);
+    console.warn('MailChannels error:', err);
   }
 
-  return { success: false, error: 'Could not deliver email via configured gateways' };
+  return { success: false, error: 'Could not deliver notification email' };
 }
 
 module.exports = {

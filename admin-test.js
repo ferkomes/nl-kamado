@@ -8,7 +8,7 @@
   let adminToken = sessionStorage.getItem('kk_nl_admin_token') || '';
 
   function formatEur(amount) {
-    return '€' + Number(amount || 0).toLocaleString('nl-NL', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + ',-';
+    return '€' + Number(amount || 0).toLocaleString('nl-NL', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
   }
 
   function formatPct(val) {
@@ -19,13 +19,13 @@
     if (!isoStr) return '-';
     try {
       const d = new Date(isoStr);
-      return d.toLocaleDateString('nl-NL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+      return d.toLocaleDateString('nl-NL', { day: '2-digit', month: '2-digit' }) + ' ' +
+             d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
     } catch (e) {
       return isoStr;
     }
   }
 
-  // --- AUTH CHECK ---
   function showAuthOverlay() {
     document.getElementById('authOverlay').style.display = 'flex';
     document.getElementById('dashboardContent').style.display = 'none';
@@ -51,188 +51,133 @@
         sessionStorage.removeItem('kk_nl_admin_token');
         adminToken = '';
         showAuthOverlay();
-        document.getElementById('authError').textContent = 'Ongeldig wachtwoord.';
         return;
       }
 
-      if (!resp.ok) {
-        throw new Error('Fout bij ophalen statistieken.');
-      }
+      if (!resp.ok) throw new Error('Fout bij ophalen statistieken');
 
       const data = await resp.json();
       hideAuthOverlay();
       renderDashboard(data);
     } catch (err) {
       console.error('Error loading dashboard:', err);
-      alert('Kon marktstatistieken niet inladen: ' + err.message);
     }
   }
 
   function renderDashboard(data) {
-    const { overview, funnel, models, colors, accessories, combinations, timeline, intents, abandoned } = data;
+    const { kpis, models, colors, accessories, configurations, intents } = data;
 
-    // 1. KPI Cards
-    document.getElementById('kpiVisitors').textContent = overview.totalVisitors.toLocaleString('nl-NL');
-    document.getElementById('kpiCarts').textContent = overview.totalCarts.toLocaleString('nl-NL');
-    document.getElementById('kpiCartRate').textContent = `${formatPct(overview.cartConversionRate)} van bezoekers`;
+    // 1. TOP 6 BIG NUMBERS
+    document.getElementById('numVisitors').textContent = Number(kpis.visitors || 0).toLocaleString('nl-NL');
+    document.getElementById('numAddToCart').textContent = Number(kpis.addToCart || 0).toLocaleString('nl-NL');
+    document.getElementById('numCheckout').textContent = Number(kpis.checkout || 0).toLocaleString('nl-NL');
+    document.getElementById('numPurchaseIntent').textContent = Number(kpis.purchaseIntent || 0).toLocaleString('nl-NL');
+    document.getElementById('numConversion').textContent = formatPct(kpis.conversionPct);
+    document.getElementById('numRevenue').textContent = formatEur(kpis.potentialRevenue);
 
-    document.getElementById('kpiCheckouts').textContent = overview.totalCheckouts.toLocaleString('nl-NL');
-    document.getElementById('kpiCheckoutRate').textContent = `${formatPct(overview.checkoutConversionRate)} van bezoekers`;
-
-    document.getElementById('kpiIntents').textContent = overview.totalIntents.toLocaleString('nl-NL');
-    document.getElementById('kpiIntentRate').textContent = `${formatPct(overview.overallConversionRate)} overall conversie`;
-
-    document.getElementById('kpiRevenue').textContent = formatEur(overview.hypotheticalRevenue);
-    document.getElementById('kpiAov').textContent = `Gem. order: ${formatEur(overview.averageOrderValue)}`;
-
-    document.getElementById('kpiKamadoUnits').textContent = overview.totalKamadoUnits.toLocaleString('nl-NL');
-
-    document.getElementById('kpiAbandoned').textContent = overview.totalAbandoned.toLocaleString('nl-NL');
-    document.getElementById('kpiLostRevenue').textContent = `${formatEur(overview.lostRevenue)} potentieel verlies`;
-
-    // 2. Funnel Visualizer
-    document.getElementById('funnelStep1').textContent = funnel.visitors;
-    document.getElementById('funnelStep2').textContent = funnel.carts;
-    document.getElementById('funnelRate2').textContent = formatPct(funnel.cartRate);
-    document.getElementById('funnelDrop2').textContent = `-${formatPct(funnel.cartDropoff)} drop-off`;
-
-    document.getElementById('funnelStep3').textContent = funnel.checkouts;
-    document.getElementById('funnelRate3').textContent = formatPct(funnel.checkoutRate);
-    document.getElementById('funnelDrop3').textContent = `-${formatPct(funnel.checkoutDropoff)} drop-off`;
-
-    document.getElementById('funnelStep4').textContent = funnel.intents;
-    document.getElementById('funnelRate4').textContent = formatPct(funnel.intentRate);
-    document.getElementById('funnelDrop4').textContent = `-${formatPct(funnel.intentDropoff)} drop-off`;
-
-    // 3. Models Table
+    // 2. MODELS TABLE (18 Basic / 18 Premium / 21 / 23 / 27)
     const modelsTbody = document.querySelector('#modelsTable tbody');
     modelsTbody.innerHTML = '';
-    models.forEach(m => {
+    (models || []).forEach(m => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td><strong>KundiKamado ${m.size}″</strong></td>
+        <td><strong>${m.name}</strong></td>
         <td>${formatEur(m.price)}</td>
-        <td><span class="badge badge-primary">${m.count} stuks</span></td>
-        <td>${formatPct(m.share)}</td>
-        <td><strong>${formatEur(m.revenue)}</strong></td>
+        <td><span class="badge badge-primary">${m.count} db</span></td>
+        <td><strong>${formatPct(m.share)}</strong></td>
       `;
       modelsTbody.appendChild(tr);
     });
 
-    // 4. Colors Table
+    // 3. COLORS TABLE (Black, Burgundy, Blue, Green, Orange, Beige, Yellow)
     const colorsTbody = document.querySelector('#colorsTable tbody');
     colorsTbody.innerHTML = '';
-    colors.forEach(c => {
+    (colors || []).forEach(c => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td><strong>${c.name}</strong></td>
-        <td>${c.count} gekozen</td>
-        <td>${formatPct(c.share)}</td>
+        <td>
+          <span class="color-swatch" style="background-color: ${c.hex};"></span>
+          <strong>${c.name}</strong>
+        </td>
+        <td><span class="badge badge-primary">${c.count} db</span></td>
+        <td><strong>${formatPct(c.share)}</strong></td>
       `;
       colorsTbody.appendChild(tr);
     });
 
-    // 5. Accessories Attachment Table
+    // 4. ACCESSORIES TABLE
     const accTbody = document.querySelector('#accessoriesTable tbody');
     accTbody.innerHTML = '';
-    accessories.forEach(a => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td><strong>${a.name}</strong></td>
-        <td>${a.count}x</td>
-        <td><span class="badge badge-success">${formatPct(a.attachRate)}</span></td>
-        <td>${formatEur(a.revenue)}</td>
-      `;
-      accTbody.appendChild(tr);
-    });
+    if (!accessories || accessories.length === 0) {
+      accTbody.innerHTML = '<tr><td colspan="4" style="color: var(--text-dim);">Nog geen accessoires geselecteerd.</td></tr>';
+    } else {
+      accessories.forEach(a => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${a.name}</strong></td>
+          <td><span class="badge badge-primary">${a.count} db</span></td>
+          <td><span class="badge badge-success">${formatPct(a.attachRate)}</span></td>
+          <td>${formatEur(a.revenue)}</td>
+        `;
+        accTbody.appendChild(tr);
+      });
+    }
 
-    // 6. Top Combinations Table
-    const combTbody = document.querySelector('#combinationsTable tbody');
-    combTbody.innerHTML = '';
-    combinations.forEach(cb => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${cb.description}</td>
-        <td><span class="badge badge-primary">${cb.count}x</span></td>
-        <td><strong>${formatEur(cb.totalValue)}</strong></td>
-      `;
-      combTbody.appendChild(tr);
-    });
+    // 5. CONFIGURATIONS TABLE
+    const confTbody = document.querySelector('#configurationsTable tbody');
+    confTbody.innerHTML = '';
+    if (!configurations || configurations.length === 0) {
+      confTbody.innerHTML = '<tr><td colspan="3" style="color: var(--text-dim);">Nog geen aankoopintenties geregistreerd.</td></tr>';
+    } else {
+      configurations.forEach(cfg => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${cfg.description}</strong></td>
+          <td><span class="badge badge-primary">${cfg.count} db</span></td>
+          <td><strong>${formatEur(cfg.totalValue)}</strong></td>
+        `;
+        confTbody.appendChild(tr);
+      });
+    }
 
-    // 7. Timeline Table
-    const timeTbody = document.querySelector('#timelineTable tbody');
-    timeTbody.innerHTML = '';
-    timeline.forEach(t => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td><strong>${t.date}</strong></td>
-        <td>${t.visitors}</td>
-        <td>${t.carts}</td>
-        <td>${t.checkouts}</td>
-        <td><span class="badge badge-primary">${t.intents}</span></td>
-        <td>${formatPct(t.conversionRate)}</td>
-        <td><strong>${formatEur(t.revenue)}</strong></td>
-      `;
-      timeTbody.appendChild(tr);
-    });
-
-    // 8. Detailed Intents Feed
-    const intentsTbody = document.querySelector('#intentsDetailTable tbody');
+    // 6. DEDICATED PURCHASE INTENTS TABLE
+    // Date | Model | Color | Accessories | Total | Email | Source
+    const intentsTbody = document.querySelector('#intentsTable tbody');
     intentsTbody.innerHTML = '';
-    intents.forEach(item => {
-      const tr = document.createElement('tr');
-      let accStr = '-';
-      try {
-        const accArr = JSON.parse(item.accessories_json || '[]');
-        if (accArr.length) accStr = accArr.map(a => `${a.qty}x ${a.name}`).join(', ');
-      } catch (e) {}
+    if (!intents || intents.length === 0) {
+      intentsTbody.innerHTML = '<tr><td colspan="7" style="color: var(--text-dim);">Nog geen aankoopintenties binnengekomen.</td></tr>';
+    } else {
+      intents.forEach(item => {
+        const tr = document.createElement('tr');
+        let accStr = '-';
+        try {
+          const accArr = JSON.parse(item.accessories_json || '[]');
+          if (accArr.length) {
+            accStr = accArr.map(a => `${a.name} ×${a.qty || 1}`).join(', ');
+          }
+        } catch (e) {}
 
-      tr.innerHTML = `
-        <td><small>${formatDate(item.created_at)}</small></td>
-        <td>
-          <strong>${item.name}</strong><br>
-          <small style="color: var(--text-dim);">${item.email}<br>${item.phone}</small>
-        </td>
-        <td>${item.city} (${item.postal_code})</td>
-        <td><strong>${item.size_inch}″ Kamado</strong></td>
-        <td>${item.color_name}<br><small style="color: var(--text-dim);">${item.texture}</small></td>
-        <td><small>${accStr}</small></td>
-        <td><strong style="color: var(--primary);">${formatEur(item.total_amount_eur)}</strong></td>
-        <td><span class="badge badge-success">${(item.payment_method_intent || 'ideal').toUpperCase()}</span></td>
-      `;
-      intentsTbody.appendChild(tr);
-    });
+        const colorText = item.final_color || item.color_name || 'Black';
+        const modelText = item.model_name || `${item.size_inch}″ Kamado`;
 
-    // 9. Detailed Abandoned Feed
-    const abTbody = document.querySelector('#abandonedDetailTable tbody');
-    abTbody.innerHTML = '';
-    abandoned.forEach(item => {
-      const tr = document.createElement('tr');
-      let itemsSummary = '';
-      try {
-        const itemsArr = JSON.parse(item.items_json || '[]');
-        itemsSummary = itemsArr.map(i => `${i.qty}x ${i.name}`).join(', ');
-      } catch (e) {
-        itemsSummary = '-';
-      }
-
-      tr.innerHTML = `
-        <td><small>${formatDate(item.updated_at)}</small></td>
-        <td><code>${item.session_id.substring(0, 10)}...</code></td>
-        <td><span class="badge badge-warning">${item.last_step.toUpperCase()}</span></td>
-        <td>${item.email || '<em style="color: var(--text-dim);">Onbekend</em>'}</td>
-        <td><small>${itemsSummary}</small></td>
-        <td><strong>${formatEur(item.total_amount_eur)}</strong></td>
-      `;
-      abTbody.appendChild(tr);
-    });
+        tr.innerHTML = `
+          <td><small>${formatDate(item.created_at)}</small></td>
+          <td><strong>${modelText}</strong></td>
+          <td>${colorText}</td>
+          <td><small>${accStr}</small></td>
+          <td><strong style="color: var(--success);">${formatEur(item.total_amount_eur)}</strong></td>
+          <td><code>${item.email || '-'}</code></td>
+          <td><span class="badge badge-source">${item.source || 'Direct'}</span></td>
+        `;
+        intentsTbody.appendChild(tr);
+      });
+    }
   }
 
   // --- EVENTS ---
   document.addEventListener('DOMContentLoaded', () => {
-    // Auth login click
     document.getElementById('authBtn').addEventListener('click', () => {
-      const pwd = document.getElementById('adminPwd').value;
+      const pwd = document.getElementById('adminPwd').value.trim();
       if (!pwd) return;
       adminToken = pwd;
       sessionStorage.setItem('kk_nl_admin_token', pwd);
@@ -240,48 +185,21 @@
     });
 
     document.getElementById('adminPwd').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        document.getElementById('authBtn').click();
-      }
+      if (e.key === 'Enter') document.getElementById('authBtn').click();
     });
 
-    // Logout
     document.getElementById('logoutBtn').addEventListener('click', () => {
       sessionStorage.removeItem('kk_nl_admin_token');
       adminToken = '';
       showAuthOverlay();
     });
 
-    // Refresh
     document.getElementById('refreshBtn').addEventListener('click', loadDashboardData);
 
-    // CSV Export
     document.getElementById('exportIntentsBtn').addEventListener('click', () => {
       window.location.href = '/api/market-test/export-intents.csv?token=' + encodeURIComponent(adminToken);
     });
 
-    // Tabs
-    const tabIntentsBtn = document.getElementById('tabIntentsBtn');
-    const tabAbandonedBtn = document.getElementById('tabAbandonedBtn');
-    const tabIntentsContent = document.getElementById('tabIntentsContent');
-    const tabAbandonedContent = document.getElementById('tabAbandonedContent');
-
-    tabIntentsBtn.addEventListener('click', () => {
-      tabIntentsBtn.classList.add('active');
-      tabAbandonedBtn.classList.remove('active');
-      tabIntentsContent.style.display = 'block';
-      tabAbandonedContent.style.display = 'none';
-    });
-
-    tabAbandonedBtn.addEventListener('click', () => {
-      tabAbandonedBtn.classList.add('active');
-      tabIntentsBtn.classList.remove('active');
-      tabIntentsContent.style.display = 'none';
-      tabAbandonedContent.style.display = 'block';
-    });
-
-    // Initial load
     loadDashboardData();
   });
-
 })();

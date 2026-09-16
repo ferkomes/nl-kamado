@@ -8,7 +8,7 @@ const appJs = fs.readFileSync(path.join(__dirname, 'app.js'), 'utf8');
 const adminHtml = fs.readFileSync(path.join(__dirname, 'admin.html'), 'utf8');
 const adminJs = fs.readFileSync(path.join(__dirname, 'admin-test.js'), 'utf8');
 
-// Inline style and script for maximum standalone performance & zero roundtrips
+// Inline style and script for maximum performance and zero extra requests
 const embeddedHtml = indexHtml
   .replace(/<link rel="stylesheet" href="style\.css">/, () => '<style>\n' + styleCss + '\n</style>')
   .replace(/<script src="app\.js"><\/script>/, () => '<script>\n' + appJs + '\n</script>');
@@ -22,10 +22,10 @@ const marketServiceCode = fs.readFileSync(path.join(__dirname, 'server/market-se
 
 const workerTemplate = `/**
  * KundiKamado Netherlands - Cloudflare Worker
- * - Serves Dutch storefront & Admin Dashboard
- * - R2 Asset streaming with fallback proxy
- * - D1 Database integration for Funnel & Purchase Intent tracking
- * - Owner email alert dispatcher
+ * - Serves 100% Dutch Storefront & Market-Test Admin Dashboard
+ * - Comprehensive Funnel Tracking (visitor -> cart -> checkout -> purchase_intent)
+ * - R2 Asset streaming
+ * - Instant owner email notifications upon PURCHASE_INTENT
  */
 
 const HTML_CONTENT = ${JSON.stringify(embeddedHtml)};
@@ -103,31 +103,40 @@ export default {
       });
     }
 
-    // 3. Asset & Image Serving (R2 with proxy fallback)
-    if (pathname.startsWith('/assets/') || pathname.startsWith('/images/')) {
+    // 3. Asset & Image Serving (R2 with multiple key fallbacks)
+    if (pathname.startsWith('/assets/') || pathname.startsWith('/images/') || pathname === '/favicon.ico' || pathname === '/favicon.png') {
       let r2Key = pathname.replace(/^\\/(assets|images)\\//, '');
       if (r2Key.startsWith('/')) r2Key = r2Key.substring(1);
 
-      // Try R2 bucket binding ASSETS if bound
+      const candidateKeys = [
+        r2Key,
+        pathname.substring(1),
+        'images/' + r2Key,
+        'assets/' + r2Key
+      ];
+      if (pathname.includes('favicon')) {
+        candidateKeys.push('assets/favicon.png', 'favicon.png', 'favicon.ico');
+      }
+
       if (env && env.ASSETS && typeof env.ASSETS.get === 'function') {
-        try {
-          const object = await env.ASSETS.get(r2Key);
-          if (object) {
-            const ext = r2Key.split('.').pop().toLowerCase();
-            const contentType = MIME_TYPES[ext] || 'application/octet-stream';
-            const headers = new Headers();
-            object.writeHttpMetadata(headers);
-            headers.set('Content-Type', contentType);
-            headers.set('Access-Control-Allow-Origin', '*');
-            headers.set('Cache-Control', 'public, max-age=31536000, immutable');
-            return new Response(object.body, { headers });
-          }
-        } catch (r2Err) {
-          console.warn('R2 read error:', r2Key, r2Err);
+        for (const key of candidateKeys) {
+          try {
+            const object = await env.ASSETS.get(key);
+            if (object) {
+              const ext = key.split('.').pop().toLowerCase();
+              const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+              const headers = new Headers();
+              object.writeHttpMetadata(headers);
+              headers.set('Content-Type', contentType);
+              headers.set('Access-Control-Allow-Origin', '*');
+              headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+              return new Response(object.body, { headers });
+            }
+          } catch (r2Err) {}
         }
       }
 
-      // Fallback: Proxy to active KundiKamado assets CDN
+      // External CDN fallback if missing in local R2
       try {
         const proxyUrl = 'https://kundikamado.ferkomes.workers.dev' + pathname;
         const proxyResp = await fetch(proxyUrl);
@@ -137,14 +146,12 @@ export default {
           proxyHeaders.set('Cache-Control', 'public, max-age=86400');
           return new Response(proxyResp.body, { status: 200, headers: proxyHeaders });
         }
-      } catch (proxyErr) {
-        console.warn('Asset proxy error:', proxyErr);
-      }
+      } catch (proxyErr) {}
 
       return new Response('Asset not found', { status: 404 });
     }
 
-    // 4. API: Funnel Telemetry (POST /api/market-test/track)
+    // 4. Funnel Telemetry (POST /api/market-test/track)
     if (pathname === '/api/market-test/track' && method === 'POST') {
       try {
         const body = await request.json();
@@ -172,7 +179,7 @@ export default {
       }
     }
 
-    // 5. API: Cart Update / Abandoned Cart (POST /api/market-test/cart-update)
+    // 5. Cart Update / Abandoned Cart (POST /api/market-test/cart-update)
     if (pathname === '/api/market-test/cart-update' && method === 'POST') {
       try {
         const body = await request.json();
@@ -188,7 +195,7 @@ export default {
       }
     }
 
-    // 6. API: Purchase Intent (POST /api/market-test/purchase-intent)
+    // 6. Purchase Intent (POST /api/market-test/purchase-intent)
     if (pathname === '/api/market-test/purchase-intent' && method === 'POST') {
       try {
         const body = await request.json();
@@ -208,7 +215,7 @@ export default {
       }
     }
 
-    // 7. API: Admin Market Stats (GET /api/market-test/stats)
+    // 7. Admin Market Stats (GET /api/market-test/stats)
     if (pathname === '/api/market-test/stats' && method === 'GET') {
       if (!authenticateAdmin(request, env)) {
         return new Response(JSON.stringify({ error: 'Niet geautoriseerd' }), {
@@ -230,7 +237,7 @@ export default {
       }
     }
 
-    // 8. API: Export Intents CSV (GET /api/market-test/export-intents.csv)
+    // 8. Export Intents CSV (GET /api/market-test/export-intents.csv)
     if (pathname === '/api/market-test/export-intents.csv' && method === 'GET') {
       if (!authenticateAdmin(request, env)) {
         return new Response('Niet geautoriseerd', { status: 401 });

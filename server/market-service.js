@@ -6,17 +6,21 @@ const { sendPurchaseIntentNotification } = require('./email-service.js');
 
 async function ensureTables(db) {
   if (!db) return;
-  // Safety idempotent creation
   await db.prepare(`
     CREATE TABLE IF NOT EXISTS market_sessions (
       session_id TEXT PRIMARY KEY,
       ip_hash TEXT,
       user_agent TEXT,
       referer TEXT,
+      source TEXT,
+      landing_page TEXT,
+      initial_color TEXT,
+      final_color TEXT,
       created_at TEXT NOT NULL,
       last_active_at TEXT NOT NULL,
       reached_cart INTEGER DEFAULT 0,
       reached_checkout INTEGER DEFAULT 0,
+      reached_contact INTEGER DEFAULT 0,
       reached_intent INTEGER DEFAULT 0
     );
   `).run();
@@ -37,25 +41,23 @@ async function ensureTables(db) {
       session_id TEXT NOT NULL,
       created_at TEXT NOT NULL,
       email TEXT NOT NULL,
-      name TEXT NOT NULL,
-      phone TEXT NOT NULL,
-      street TEXT NOT NULL,
-      house_number TEXT NOT NULL,
-      postal_code TEXT NOT NULL,
-      city TEXT NOT NULL,
+      name TEXT,
+      phone TEXT,
+      postal_code TEXT,
+      city TEXT,
       country TEXT DEFAULT 'NL',
-      payment_method_intent TEXT,
-      model_id TEXT,
-      size_inch TEXT,
-      color_id TEXT,
-      color_name TEXT,
-      texture TEXT,
+      source TEXT DEFAULT 'Direct',
+      landing_page TEXT,
+      initial_color TEXT,
+      final_color TEXT,
+      model_name TEXT NOT NULL,
+      size_inch TEXT NOT NULL,
       items_json TEXT NOT NULL,
       accessories_json TEXT,
-      subtotal_eur REAL NOT NULL,
-      shipping_fee_eur REAL NOT NULL DEFAULT 0,
-      total_amount_eur REAL NOT NULL,
-      customer_notes TEXT,
+      kamado_price_eur REAL NOT NULL DEFAULT 0,
+      accessories_price_eur REAL NOT NULL DEFAULT 0,
+      total_amount_eur REAL NOT NULL DEFAULT 0,
+      payment_method_intent TEXT,
       notification_sent INTEGER DEFAULT 0,
       notification_error TEXT
     );
@@ -67,7 +69,9 @@ async function ensureTables(db) {
       updated_at TEXT NOT NULL,
       email TEXT,
       name TEXT,
-      phone TEXT,
+      postal_code TEXT,
+      city TEXT,
+      source TEXT,
       items_json TEXT NOT NULL,
       total_amount_eur REAL NOT NULL,
       last_step TEXT NOT NULL DEFAULT 'cart',
@@ -76,64 +80,104 @@ async function ensureTables(db) {
   `).run();
 }
 
+function detectTrafficSource(referer, urlParams = {}) {
+  const utmSource = urlParams.utm_source;
+  if (utmSource) {
+    const med = urlParams.utm_medium ? ` / ${urlParams.utm_medium}` : '';
+    return `${utmSource}${med}`;
+  }
+  if (!referer) return 'Direct';
+  try {
+    const refHost = new URL(referer).hostname.toLowerCase();
+    if (refHost.includes('google')) return 'Google Search';
+    if (refHost.includes('facebook') || refHost.includes('fb.me') || refHost.includes('meta')) return 'Facebook Ad';
+    if (refHost.includes('instagram')) return 'Instagram';
+    if (refHost.includes('tiktok')) return 'TikTok';
+    if (refHost.includes('linkedin')) return 'LinkedIn';
+    return refHost.replace('www.', '');
+  } catch (e) {
+    return referer.substring(0, 30);
+  }
+}
+
 async function trackEvent(db, { sessionId, eventType, payload = {}, ip = '', userAgent = '', referer = '' }) {
   if (!db || !sessionId) return;
   await ensureTables(db);
   const now = new Date().toISOString();
 
-  // 1. Session upsert
-  const reachedCart = eventType === 'add_to_cart' || eventType === 'open_cart' ? 1 : 0;
+  const source = payload.source || detectTrafficSource(referer, payload.urlParams || {});
+  const landingPage = payload.landingPage || payload.path || '/';
+  const initialColor = payload.initialColor || payload.color || null;
+  const finalColor = payload.finalColor || payload.color || initialColor || null;
+
+  const reachedCart = ['add_to_cart', 'open_cart'].includes(eventType) ? 1 : 0;
   const reachedCheckout = eventType === 'checkout_start' ? 1 : 0;
+  const reachedContact = eventType === 'contact_complete' ? 1 : 0;
   const reachedIntent = eventType === 'purchase_intent' ? 1 : 0;
 
   await db.prepare(`
-    INSERT INTO market_sessions (session_id, ip_hash, user_agent, referer, created_at, last_active_at, reached_cart, reached_checkout, reached_intent)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO market_sessions (
+      session_id, ip_hash, user_agent, referer, source, landing_page,
+      initial_color, final_color, created_at, last_active_at,
+      reached_cart, reached_checkout, reached_contact, reached_intent
+    ) VALUES (
+      ?, ?, ?, ?, ?, ?,
+      ?, ?, ?, ?,
+      ?, ?, ?, ?
+    )
     ON CONFLICT(session_id) DO UPDATE SET
       last_active_at = excluded.last_active_at,
+      final_color = COALESCE(excluded.final_color, market_sessions.final_color),
       reached_cart = MAX(market_sessions.reached_cart, excluded.reached_cart),
       reached_checkout = MAX(market_sessions.reached_checkout, excluded.reached_checkout),
+      reached_contact = MAX(market_sessions.reached_contact, excluded.reached_contact),
       reached_intent = MAX(market_sessions.reached_intent, excluded.reached_intent)
-  `).bind(sessionId, ip, userAgent, referer, now, now, reachedCart, reachedCheckout, reachedIntent).run();
+  `).bind(
+    sessionId ?? null, ip ?? null, userAgent ?? null, referer ?? null, source ?? "Direct", landingPage ?? "/",
+    initialColor ?? null, finalColor ?? null, now, now,
+    reachedCart ?? 0, reachedCheckout ?? 0, reachedContact ?? 0, reachedIntent ?? 0
+  ).run();
 
-  // 2. Record individual event
   await db.prepare(`
     INSERT INTO market_events (session_id, event_type, payload_json, created_at)
     VALUES (?, ?, ?, ?)
   `).bind(sessionId, eventType, JSON.stringify(payload), now).run();
 }
 
-async function updateCart(db, { sessionId, items = [], totalAmount = 0, lastStep = 'cart', email = null, name = null, phone = null }) {
+async function updateCart(db, { sessionId, items = [], totalAmount = 0, lastStep = 'cart', email = null, name = null, postalCode = null, city = null, source = null }) {
   if (!db || !sessionId) return;
   await ensureTables(db);
   const now = new Date().toISOString();
 
   const isCheckout = lastStep === 'checkout';
+  const isContact = Boolean(email && email.includes('@'));
 
-  // Mark session reached flags
   await db.prepare(`
     UPDATE market_sessions
     SET last_active_at = ?,
         reached_cart = 1,
-        reached_checkout = CASE WHEN ? = 1 THEN 1 ELSE reached_checkout END
+        reached_checkout = CASE WHEN ? = 1 THEN 1 ELSE reached_checkout END,
+        reached_contact = CASE WHEN ? = 1 THEN 1 ELSE reached_contact END
     WHERE session_id = ?
-  `).bind(now, isCheckout ? 1 : 0, sessionId).run();
+  `).bind(now, isCheckout ? 1 : 0, isContact ? 1 : 0, sessionId).run();
 
-  // Upsert into abandoned_carts
   if (items && items.length > 0) {
     await db.prepare(`
-      INSERT INTO abandoned_carts (session_id, updated_at, email, name, phone, items_json, total_amount_eur, last_step, converted_to_intent)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
+      INSERT INTO abandoned_carts (
+        session_id, updated_at, email, name, postal_code, city, source, items_json, total_amount_eur, last_step, converted_to_intent
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
       ON CONFLICT(session_id) DO UPDATE SET
         updated_at = excluded.updated_at,
         email = COALESCE(excluded.email, abandoned_carts.email),
         name = COALESCE(excluded.name, abandoned_carts.name),
-        phone = COALESCE(excluded.phone, abandoned_carts.phone),
+        postal_code = COALESCE(excluded.postal_code, abandoned_carts.postal_code),
+        city = COALESCE(excluded.city, abandoned_carts.city),
+        source = COALESCE(excluded.source, abandoned_carts.source),
         items_json = excluded.items_json,
         total_amount_eur = excluded.total_amount_eur,
         last_step = excluded.last_step
       WHERE abandoned_carts.converted_to_intent = 0
-    `).bind(sessionId, now, email, name, phone, JSON.stringify(items), totalAmount, lastStep).run();
+    `).bind(sessionId ?? null, now, email ?? null, name ?? null, postalCode ?? null, city ?? null, source ?? null, JSON.stringify(items || []), Number(totalAmount) || 0, lastStep || "cart").run();
   }
 }
 
@@ -149,56 +193,75 @@ async function recordPurchaseIntent(env, intentData) {
   const items = intentData.items || [];
   const accessories = intentData.accessories || [];
 
+  // Find Kamado & separate prices
+  const kamadoItem = items.find(i => i.type === 'kamado') || {};
+  const kamadoPrice = (kamadoItem.price || 0) * (kamadoItem.qty || 1);
+  const accPrice = accessories.reduce((sum, a) => sum + (a.price || 0) * (a.qty || 1), 0);
+  const totalAmount = intentData.totalAmountEur || (kamadoPrice + accPrice);
+
+  const modelName = kamadoItem.name || intentData.modelName || 'KundiKamado';
+  const sizeInch = String(kamadoItem.sizeInch || intentData.sizeInch || '23');
+  const initialColor = intentData.initialColor || intentData.colorName || 'Black';
+  const finalColor = intentData.finalColor || kamadoItem.colorName || intentData.colorName || 'Black';
+  const source = intentData.source || 'Direct';
+  const landingPage = intentData.landingPage || '/';
+
+  // Extract postal region (first 4 digits or prefix)
+  const postalCode = (cust.postalCode || '').trim();
+  const city = (cust.city || '').trim();
+
   // 1. Insert into purchase_intents
   await db.prepare(`
     INSERT INTO purchase_intents (
       id, session_id, created_at, email, name, phone,
-      street, house_number, postal_code, city, country,
-      payment_method_intent, model_id, size_inch, color_id, color_name, texture,
-      items_json, accessories_json, subtotal_eur, shipping_fee_eur, total_amount_eur,
-      customer_notes, notification_sent
+      postal_code, city, country, source, landing_page,
+      initial_color, final_color, model_name, size_inch,
+      items_json, accessories_json,
+      kamado_price_eur, accessories_price_eur, total_amount_eur,
+      payment_method_intent, notification_sent
     ) VALUES (
       ?, ?, ?, ?, ?, ?,
       ?, ?, ?, ?, ?,
-      ?, ?, ?, ?, ?, ?,
-      ?, ?, ?, ?, ?,
+      ?, ?, ?, ?,
+      ?, ?,
+      ?, ?, ?,
       ?, 0
     )
   `).bind(
     intentId,
     intentData.sessionId,
     now,
-    cust.email || '',
+    cust.email || intentData.email || '',
     cust.name || '',
     cust.phone || '',
-    cust.street || '',
-    cust.houseNumber || '',
-    cust.postalCode || '',
-    cust.city || '',
-    cust.country || 'NL',
-    intentData.paymentMethod || 'ideal',
-    intentData.modelId || '',
-    intentData.sizeInch || '',
-    intentData.colorId || '',
-    intentData.colorName || '',
-    intentData.texture || '',
+    postalCode,
+    city,
+    'NL',
+    source,
+    landingPage,
+    initialColor,
+    finalColor,
+    modelName,
+    sizeInch,
     JSON.stringify(items),
     JSON.stringify(accessories),
-    intentData.subtotalEur || intentData.totalAmountEur || 0,
-    intentData.shippingFeeEur || 0,
-    intentData.totalAmountEur || 0,
-    intentData.notes || ''
+    kamadoPrice,
+    accPrice,
+    totalAmount,
+    intentData.paymentMethod || 'ideal'
   ).run();
 
-  // 2. Update session flags
+  // 2. Update session
   await db.prepare(`
     UPDATE market_sessions
     SET reached_cart = 1,
         reached_checkout = 1,
+        reached_contact = 1,
         reached_intent = 1,
+        final_color = ?,
         last_active_at = ?
     WHERE session_id = ?
-  `).bind(now, intentData.sessionId).run();
+  `).bind(finalColor, now, intentData.sessionId).run();
 
   // 3. Mark abandoned cart converted
   await db.prepare(`
@@ -206,21 +269,32 @@ async function recordPurchaseIntent(env, intentData) {
     SET converted_to_intent = 1,
         email = ?,
         name = ?,
-        phone = ?
+        postal_code = ?,
+        city = ?
     WHERE session_id = ?
-  `).bind(cust.email, cust.name, cust.phone, intentData.sessionId).run();
+  `).bind(cust.email || '', cust.name || '', postalCode, city, intentData.sessionId).run();
 
   // 4. Send email notification asynchronously
   try {
     const notifyResult = await sendPurchaseIntentNotification(env, {
       id: intentId,
-      ...intentData
+      modelName,
+      sizeInch,
+      finalColor,
+      initialColor,
+      accessories,
+      kamadoPriceEur: kamadoPrice,
+      accessoriesPriceEur: accPrice,
+      totalAmountEur: totalAmount,
+      customer: cust,
+      source,
+      landingPage
     });
     if (notifyResult.success) {
       await db.prepare(`UPDATE purchase_intents SET notification_sent = 1 WHERE id = ?`).bind(intentId).run();
     }
   } catch (err) {
-    console.error('Failed to notify owner for intent:', err);
+    console.error('Failed to notify owner:', err);
     await db.prepare(`UPDATE purchase_intents SET notification_error = ? WHERE id = ?`).bind(err.message, intentId).run();
   }
 
@@ -231,224 +305,152 @@ async function getMarketStats(db) {
   if (!db) throw new Error('Database binding DB is missing');
   await ensureTables(db);
 
-  // 1. Session & Funnel counts
+  // 1. Funnel counts from market_sessions
   const sessionRow = await db.prepare(`
     SELECT
       COUNT(*) AS total_visitors,
       SUM(CASE WHEN reached_cart = 1 THEN 1 ELSE 0 END) AS total_carts,
       SUM(CASE WHEN reached_checkout = 1 THEN 1 ELSE 0 END) AS total_checkouts,
+      SUM(CASE WHEN reached_contact = 1 THEN 1 ELSE 0 END) AS total_contacts,
       SUM(CASE WHEN reached_intent = 1 THEN 1 ELSE 0 END) AS total_intents
     FROM market_sessions
   `).first() || {};
 
-  const totalVisitors = Number(sessionRow.total_visitors || 0);
-  const totalCarts = Number(sessionRow.total_carts || 0);
-  const totalCheckouts = Number(sessionRow.total_checkouts || 0);
-  const totalIntents = Number(sessionRow.total_intents || 0);
+  const visitors = Number(sessionRow.total_visitors || 0);
+  const addToCart = Number(sessionRow.total_carts || 0);
+  const checkouts = Number(sessionRow.total_checkouts || 0);
+  const contacts = Number(sessionRow.total_contacts || 0);
+  const purchaseIntents = Number(sessionRow.total_intents || 0);
+  const conversionPct = visitors > 0 ? (purchaseIntents / visitors) : 0;
 
-  // Funnel calculations
-  const cartRate = totalVisitors > 0 ? totalCarts / totalVisitors : 0;
-  const cartDropoff = totalVisitors > 0 ? (totalVisitors - totalCarts) / totalVisitors : 0;
-
-  const checkoutRate = totalCarts > 0 ? totalCheckouts / totalCarts : 0;
-  const checkoutDropoff = totalCarts > 0 ? (totalCarts - totalCheckouts) / totalCarts : 0;
-
-  const intentRate = totalCheckouts > 0 ? totalIntents / totalCheckouts : 0;
-  const intentDropoff = totalCheckouts > 0 ? (totalCheckouts - totalIntents) / totalCheckouts : 0;
-
-  const overallConversionRate = totalVisitors > 0 ? totalIntents / totalVisitors : 0;
-
-  // 2. Revenue & Units from purchase_intents
+  // 2. Revenue & AOV
   const revRow = await db.prepare(`
     SELECT
       COUNT(*) AS intent_count,
-      COALESCE(SUM(total_amount_eur), 0) AS total_revenue
+      COALESCE(SUM(total_amount_eur), 0) AS potential_revenue,
+      COALESCE(SUM(kamado_price_eur), 0) AS kamado_revenue,
+      COALESCE(SUM(accessories_price_eur), 0) AS accessories_revenue
     FROM purchase_intents
   `).first() || {};
 
-  const hypotheticalRevenue = Number(revRow.total_revenue || 0);
+  const potentialRevenue = Number(revRow.potential_revenue || 0);
   const intentCount = Number(revRow.intent_count || 0);
-  const averageOrderValue = intentCount > 0 ? hypotheticalRevenue / intentCount : 0;
+  const aov = intentCount > 0 ? (potentialRevenue / intentCount) : 0;
 
-  // 3. Abandoned carts
-  const abRow = await db.prepare(`
-    SELECT
-      COUNT(*) AS ab_count,
-      COALESCE(SUM(total_amount_eur), 0) AS lost_revenue
-    FROM abandoned_carts
-    WHERE converted_to_intent = 0
-  `).first() || {};
-
-  const totalAbandoned = Number(abRow.ab_count || 0);
-  const lostRevenue = Number(abRow.lost_revenue || 0);
-
-  // 4. Model / Size breakdown
-  const modelStats = [
-    { size: '18', price: 699, count: 0, revenue: 0, share: 0 },
-    { size: '21', price: 889, count: 0, revenue: 0, share: 0 },
-    { size: '23', price: 1019, count: 0, revenue: 0, share: 0 },
-    { size: '27', price: 1319, count: 0, revenue: 0, share: 0 }
+  // 3. Models breakdown (18 Basic / 18 Premium / 21 / 23 / 27)
+  const targetModels = [
+    { key: '18_basic', name: '18″ Basic', size: '18', price: 599, count: 0, share: 0 },
+    { key: '18_premium', name: '18″ Premium', size: '18', price: 699, count: 0, share: 0 },
+    { key: '21', name: '21″ Veelzijdig', size: '21', price: 889, count: 0, share: 0 },
+    { key: '23', name: '23″ Bestseller', size: '23', price: 1019, count: 0, share: 0 },
+    { key: '27', name: '27″ HoReCa Reus', size: '27', price: 1319, count: 0, share: 0 }
   ];
 
-  const modelRows = await db.prepare(`
-    SELECT size_inch, COUNT(*) as cnt
-    FROM purchase_intents
-    WHERE size_inch IS NOT NULL AND size_inch != ''
-    GROUP BY size_inch
-  `).all();
+  const allIntentsRows = await db.prepare(`SELECT * FROM purchase_intents ORDER BY created_at DESC`).all();
+  const intentsList = allIntentsRows.results || [];
 
-  let totalKamadoUnits = 0;
-  (modelRows.results || []).forEach(r => {
-    const found = modelStats.find(m => m.size === String(r.size_inch));
-    if (found) {
-      found.count = Number(r.cnt);
-      found.revenue = found.count * found.price;
-      totalKamadoUnits += found.count;
-    }
+  intentsList.forEach(row => {
+    const mName = (row.model_name || '').toLowerCase();
+    const sz = String(row.size_inch || '');
+    let found = null;
+    if (sz === '18' && mName.includes('basic')) found = targetModels[0];
+    else if (sz === '18') found = targetModels[1];
+    else if (sz === '21') found = targetModels[2];
+    else if (sz === '23') found = targetModels[3];
+    else if (sz === '27') found = targetModels[4];
+
+    if (found) found.count += 1;
   });
 
-  modelStats.forEach(m => {
-    m.share = totalKamadoUnits > 0 ? m.count / totalKamadoUnits : 0;
+  const totalKamados = intentsList.length;
+  targetModels.forEach(m => {
+    m.share = totalKamados > 0 ? (m.count / totalKamados) : 0;
   });
 
-  // 5. Colors & Finish breakdown
-  const colorRows = await db.prepare(`
-    SELECT color_name, texture, COUNT(*) as cnt
-    FROM purchase_intents
-    WHERE color_name IS NOT NULL AND color_name != ''
-    GROUP BY color_name, texture
-    ORDER BY cnt DESC
-  `).all();
+  // 4. Colors breakdown (Black / Burgundy / Blue / Green / Orange / Beige / Yellow)
+  const targetColors = [
+    { key: 'Black', name: 'Black (Onyx Zwart)', hex: '#171717', count: 0, share: 0 },
+    { key: 'Burgundy', name: 'Burgundy (Bordeaux Rood)', hex: '#781d2e', count: 0, share: 0 },
+    { key: 'Blue', name: 'Blue (Marine Blauw)', hex: '#1b3f75', count: 0, share: 0 },
+    { key: 'Green', name: 'Green (Bosgroen)', hex: '#235338', count: 0, share: 0 },
+    { key: 'Orange', name: 'Orange (Kundi Oranje)', hex: '#df5417', count: 0, share: 0 },
+    { key: 'Beige', name: 'Beige (Zand Beige)', hex: '#d6cbb6', count: 0, share: 0 },
+    { key: 'Yellow', name: 'Yellow (Warm Okergeel)', hex: '#dca326', count: 0, share: 0 }
+  ];
 
-  const colors = (colorRows.results || []).map(r => ({
-    name: `${r.color_name} (${r.texture})`,
-    count: Number(r.cnt),
-    share: totalKamadoUnits > 0 ? Number(r.cnt) / totalKamadoUnits : 0
-  }));
+  intentsList.forEach(row => {
+    const col = (row.final_color || row.initial_color || '').toLowerCase();
+    const match = targetColors.find(c => col.includes(c.key.toLowerCase()) || col.includes(c.name.toLowerCase()));
+    if (match) match.count += 1;
+  });
 
-  // 6. Accessories attachment stats
-  const allIntents = await db.prepare(`SELECT items_json, accessories_json, size_inch, color_name, texture FROM purchase_intents`).all();
-  const accMap = new Map();
+  targetColors.forEach(c => {
+    c.share = totalKamados > 0 ? (c.count / totalKamados) : 0;
+  });
 
-  (allIntents.results || []).forEach(row => {
+  // 5. Accessories breakdown (with size where applicable)
+  const accStatsMap = new Map();
+  intentsList.forEach(row => {
     try {
-      const items = JSON.parse(row.items_json || '[]');
-      items.forEach(item => {
-        if (item.type === 'accessory') {
-          const accKey = item.name;
-          const current = accMap.get(accKey) || { name: accKey, count: 0, revenue: 0 };
-          current.count += item.qty || 1;
-          current.revenue += (item.price || 0) * (item.qty || 1);
-          accMap.set(accKey, current);
-        }
+      const accList = JSON.parse(row.accessories_json || '[]');
+      accList.forEach(a => {
+        const itemKey = a.sizeInch ? `${a.name} (${a.sizeInch}″)` : a.name;
+        const curr = accStatsMap.get(itemKey) || { name: itemKey, count: 0, revenue: 0 };
+        curr.count += (a.qty || 1);
+        curr.revenue += (a.price || 0) * (a.qty || 1);
+        accStatsMap.set(itemKey, curr);
       });
     } catch (e) {}
   });
 
-  const accessories = Array.from(accMap.values()).map(a => ({
+  const accessoriesStats = Array.from(accStatsMap.values()).map(a => ({
     ...a,
-    attachRate: totalKamadoUnits > 0 ? a.count / totalKamadoUnits : 0
+    attachRate: totalKamados > 0 ? (a.count / totalKamados) : 0
   })).sort((a, b) => b.count - a.count);
 
-  // 7. Combinations matrix
+  // 6. Concrete Configurations Matrix
+  // e.g. "23 Premium + Blue + Rotisserie + Pizza Stone — 14 db"
   const combMap = new Map();
-  (allIntents.results || []).forEach(row => {
+  intentsList.forEach(row => {
     try {
       const items = JSON.parse(row.items_json || '[]');
-      const kamado = items.find(i => i.type === 'kamado');
-      if (kamado) {
-        const accNames = items.filter(i => i.type === 'accessory').map(i => i.name).sort().join(' + ');
-        const kSize = kamado.sizeInch || kamado.modelId || row.size_inch || "23"; const kCol = kamado.colorName || row.color_name || ""; const kTex = kamado.textureName || row.texture || ""; const colorPart = kCol ? ` (${kCol}${kTex ? " / " + kTex : ""})` : ""; const combKey = `${kSize}″${colorPart}` + (accNames ? ` + ${accNames}` : ' (Alleen Kamado)');
-        const curr = combMap.get(combKey) || { description: combKey, count: 0, totalValue: 0 };
-        curr.count += 1;
-        curr.totalValue += items.reduce((s, i) => s + (i.price * i.qty), 0);
-        combMap.set(combKey, curr);
-      }
+      const kamado = items.find(i => i.type === 'kamado') || {};
+      const modelLabel = kamado.name || `${row.size_inch}″ Premium`;
+      const colorLabel = row.final_color || kamado.colorName || 'Black';
+      const accLabels = (items.filter(i => i.type === 'accessory').map(i => i.name)).sort().join(' + ');
+
+      const combKey = `${modelLabel} + ${colorLabel}` + (accLabels ? ` + ${accLabels}` : '');
+      const curr = combMap.get(combKey) || { description: combKey, count: 0, totalValue: 0 };
+      curr.count += 1;
+      curr.totalValue += (row.total_amount_eur || 0);
+      combMap.set(combKey, curr);
     } catch (e) {}
   });
 
-  const combinations = Array.from(combMap.values()).sort((a, b) => b.count - a.count).slice(0, 10);
+  const configurations = Array.from(combMap.values()).sort((a, b) => b.count - a.count);
 
-  // 8. Timeline (Daily)
-  const timelineRows = await db.prepare(`
-    SELECT
-      substr(created_at, 1, 10) as day,
-      COUNT(DISTINCT session_id) as visitors,
-      SUM(CASE WHEN reached_cart = 1 THEN 1 ELSE 0 END) as carts,
-      SUM(CASE WHEN reached_checkout = 1 THEN 1 ELSE 0 END) as checkouts,
-      SUM(CASE WHEN reached_intent = 1 THEN 1 ELSE 0 END) as intents
-    FROM market_sessions
-    GROUP BY day
-    ORDER BY day DESC
-    LIMIT 30
-  `).all();
-
-  // Join day revenue from purchase_intents
-  const dailyRevRows = await db.prepare(`
-    SELECT substr(created_at, 1, 10) as day, SUM(total_amount_eur) as rev
-    FROM purchase_intents
-    GROUP BY day
-  `).all();
-  const dailyRevMap = new Map((dailyRevRows.results || []).map(r => [r.day, Number(r.rev)]));
-
-  const timeline = (timelineRows.results || []).map(t => {
-    const v = Number(t.visitors || 0);
-    const i = Number(t.intents || 0);
-    return {
-      date: t.day,
-      visitors: v,
-      carts: Number(t.carts || 0),
-      checkouts: Number(t.checkouts || 0),
-      intents: i,
-      conversionRate: v > 0 ? i / v : 0,
-      revenue: dailyRevMap.get(t.day) || 0
-    };
-  });
-
-  // 9. Recent Intents (up to 50)
-  const recentIntents = await db.prepare(`
-    SELECT * FROM purchase_intents ORDER BY created_at DESC LIMIT 50
-  `).all();
-
-  // 10. Recent Abandoned (up to 50)
-  const recentAbandoned = await db.prepare(`
+  // 7. Abandoned carts
+  const abandonedRows = await db.prepare(`
     SELECT * FROM abandoned_carts WHERE converted_to_intent = 0 ORDER BY updated_at DESC LIMIT 50
   `).all();
 
   return {
-    overview: {
-      totalVisitors,
-      totalCarts,
-      cartConversionRate: cartRate,
-      totalCheckouts,
-      checkoutConversionRate: checkoutRate,
-      totalIntents,
-      overallConversionRate,
-      hypotheticalRevenue,
-      averageOrderValue,
-      totalKamadoUnits,
-      totalAbandoned,
-      lostRevenue
+    // 6 Big Numbers at the top:
+    kpis: {
+      visitors,
+      addToCart,
+      checkout: checkouts,
+      purchaseIntent: purchaseIntents,
+      conversionPct,
+      potentialRevenue
     },
-    funnel: {
-      visitors: totalVisitors,
-      carts: totalCarts,
-      cartRate,
-      cartDropoff,
-      checkouts: totalCheckouts,
-      checkoutRate,
-      checkoutDropoff,
-      intents: totalIntents,
-      intentRate,
-      intentDropoff
-    },
-    models: modelStats,
-    colors,
-    accessories,
-    combinations,
-    timeline,
-    intents: recentIntents.results || [],
-    abandoned: recentAbandoned.results || []
+    // Detailed sections:
+    models: targetModels,
+    colors: targetColors,
+    accessories: accessoriesStats,
+    configurations,
+    intents: intentsList,
+    abandoned: abandonedRows.results || []
   };
 }
 
@@ -458,44 +460,38 @@ async function exportIntentsCsv(db) {
   const rows = await db.prepare(`SELECT * FROM purchase_intents ORDER BY created_at DESC`).all();
 
   const headers = [
-    'ID', 'Aangemaakt Op', 'Naam', 'E-mail', 'Telefoon', 'Straat', 'Huisnummer',
-    'Postcode', 'Woonplaats', 'Land', 'Betaalmethode', 'Model Formaat', 'Kleur',
-    'Afwerking', 'Accessoires', 'Totaal EUR', 'Melding Verzonden'
+    'Datum', 'Model', 'Kleur', 'Accessoires', 'Kamado Prijs EUR', 'Accessoires Prijs EUR',
+    'Totaal EUR', 'Email', 'Naam', 'Telefoon', 'Regio', 'Bron (Source)', 'Landing Page'
   ];
 
   const escapeCsv = (val) => {
     if (val === null || val === undefined) return '""';
-    const str = String(val).replace(/"/g, '""');
-    return `"${str}"`;
+    return `"${String(val).replace(/"/g, '""')}"`;
   };
 
   const lines = [headers.join(',')];
 
   (rows.results || []).forEach(r => {
-    let accSummary = '';
+    let accStr = '';
     try {
       const accList = JSON.parse(r.accessories_json || '[]');
-      accSummary = accList.map(a => `${a.qty}x ${a.name}`).join('; ');
+      accStr = accList.map(a => `${a.name} ×${a.qty || 1}`).join('; ');
     } catch (e) {}
 
     lines.push([
-      escapeCsv(r.id),
-      escapeCsv(r.created_at),
-      escapeCsv(r.name),
-      escapeCsv(r.email),
-      escapeCsv(r.phone),
-      escapeCsv(r.street),
-      escapeCsv(r.house_number),
-      escapeCsv(r.postal_code),
-      escapeCsv(r.city),
-      escapeCsv(r.country),
-      escapeCsv(r.payment_method_intent),
-      escapeCsv(r.size_inch ? `${r.size_inch} inch` : ''),
-      escapeCsv(r.color_name),
-      escapeCsv(r.texture),
-      escapeCsv(accSummary),
+      escapeCsv(r.created_at?.substring(0, 16).replace('T', ' ')),
+      escapeCsv(r.model_name),
+      escapeCsv(r.final_color || r.color_name),
+      escapeCsv(accStr),
+      escapeCsv(r.kamado_price_eur),
+      escapeCsv(r.accessories_price_eur),
       escapeCsv(r.total_amount_eur),
-      escapeCsv(r.notification_sent ? 'Ja' : 'Nee')
+      escapeCsv(r.email),
+      escapeCsv(r.name),
+      escapeCsv(r.phone),
+      escapeCsv(`${r.postal_code || ''} ${r.city || ''}`.trim()),
+      escapeCsv(r.source),
+      escapeCsv(r.landing_page)
     ].join(','));
   });
 
