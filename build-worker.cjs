@@ -136,7 +136,10 @@ export default {
         }
       }
 
-      // External CDN fallback if missing in local R2
+      // External CDN fallback if missing in local R2 (never proxy logo or favicon)
+      if (pathname.includes("logo") || pathname.includes("favicon")) {
+        return new Response("Not found", { status: 404 });
+      }
       try {
         const proxyUrl = 'https://kundikamado.ferkomes.workers.dev' + pathname;
         const proxyResp = await fetch(proxyUrl);
