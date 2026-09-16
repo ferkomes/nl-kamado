@@ -1,0 +1,21 @@
+name = "nl-kamado"
+main = "worker.js"
+compatibility_date = "2024-09-01"
+
+# D1 Database binding for market test tracking & catalog
+[[d1_databases]]
+binding = "DB"
+database_name = "nl_kamado_db"
+database_id = "nl-kamado-db-id"
+
+# R2 Bucket binding for media/assets
+[[r2_buckets]]
+binding = "ASSETS"
+bucket_name = "nl-kamado-assets"
+
+[vars]
+ADMIN_PASSWORD = "S33puoxIF10C79DuZjk1tPr22VnBzFn-SBhlbq7Vp1w"
+NOTIFY_EMAIL = "info@kundikamado.hu"
+APP_ENV = "production"
+STORE_NAME = "KundiKamado Nederland"
+CURRENCY = "EUR"

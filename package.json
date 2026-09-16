@@ -1,0 +1,16 @@
+{
+  "name": "nl-kamado",
+  "version": "1.0.0",
+  "description": "KundiKamado Netherlands Market Demand Test Webshop",
+  "main": "worker.js",
+  "type": "module",
+  "scripts": {
+    "build": "node build-worker.cjs",
+    "dev": "npm run build && wrangler dev worker.js",
+    "deploy": "npm run build && wrangler deploy",
+    "test": "npm run build && node --test tests/*.test.mjs"
+  },
+  "devDependencies": {
+    "wrangler": "^3.100.0"
+  }
+}
