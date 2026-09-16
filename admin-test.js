@@ -5,7 +5,10 @@
 (function() {
   "use strict";
 
-  let adminToken = sessionStorage.getItem("kk_nl_admin_token") || "";
+  const urlToken = new URLSearchParams(window.location.search).get("token");
+  let adminToken = urlToken || sessionStorage.getItem("kk_nl_admin_token") || localStorage.getItem("craft_admin_token") || "";
+  if (urlToken) sessionStorage.setItem("kk_nl_admin_token", urlToken);
+  let currentIntents = [];
 
   function formatEur(amount) {
     return "€" + Number(amount || 0).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
@@ -27,13 +30,17 @@
   }
 
   function showAuthOverlay() {
-    document.getElementById("authOverlay").style.display = "flex";
-    document.getElementById("dashboardContent").style.display = "none";
+    const ov = document.getElementById("authOverlay");
+    const dash = document.getElementById("dashboardContent");
+    if (ov) ov.style.display = "flex";
+    if (dash) dash.style.display = "none";
   }
 
   function hideAuthOverlay() {
-    document.getElementById("authOverlay").style.display = "none";
-    document.getElementById("dashboardContent").style.display = "block";
+    const ov = document.getElementById("authOverlay");
+    const dash = document.getElementById("dashboardContent");
+    if (ov) ov.style.display = "none";
+    if (dash) dash.style.display = "block";
   }
 
   async function loadDashboardData() {
@@ -68,112 +75,187 @@
     const { kpis, models, colors, accessories, configurations, intents } = data;
 
     // 1. TOP 6 BIG NUMBERS
-    document.getElementById("numVisitors").textContent = Number(kpis.visitors || 0).toLocaleString("en-US");
-    document.getElementById("numAddToCart").textContent = Number(kpis.addToCart || 0).toLocaleString("en-US");
-    document.getElementById("numCheckout").textContent = Number(kpis.checkout || 0).toLocaleString("en-US");
-    document.getElementById("numPurchaseIntent").textContent = Number(kpis.purchaseIntent || 0).toLocaleString("en-US");
-    document.getElementById("numConversion").textContent = formatPct(kpis.conversionPct);
-    document.getElementById("numRevenue").textContent = formatEur(kpis.potentialRevenue);
+    if (kpis) {
+      document.getElementById("numVisitors").textContent = Number(kpis.visitors || 0).toLocaleString("en-US");
+      document.getElementById("numAddToCart").textContent = Number(kpis.addToCart || 0).toLocaleString("en-US");
+      document.getElementById("numCheckout").textContent = Number(kpis.checkout || 0).toLocaleString("en-US");
+      document.getElementById("numPurchaseIntent").textContent = Number(kpis.purchaseIntent || 0).toLocaleString("en-US");
+      document.getElementById("numConversion").textContent = formatPct(kpis.conversionPct);
+      document.getElementById("numRevenue").textContent = formatEur(kpis.potentialRevenue);
+    }
 
-    // 2. MODELS TABLE (18 Basic / 18 Premium / 21 / 23 / 27)
+    // 2. MODELS TABLE
     const modelsTbody = document.querySelector("#modelsTable tbody");
-    modelsTbody.innerHTML = "";
-    (models || []).forEach(m => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td><strong>${m.name}</strong></td>
-        <td>${formatEur(m.price)}</td>
-        <td><span class="badge badge-primary">${m.count} pcs</span></td>
-        <td><strong>${formatPct(m.share)}</strong></td>
-      `;
-      modelsTbody.appendChild(tr);
-    });
+    if (modelsTbody) {
+      modelsTbody.innerHTML = "";
+      (models || []).forEach(m => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = '<td><strong>' + m.name + '</strong></td>' +
+          '<td>' + formatEur(m.price) + '</td>' +
+          '<td><span class="badge badge-primary">' + m.count + ' pcs</span></td>' +
+          '<td><strong>' + formatPct(m.share) + '</strong></td>';
+        modelsTbody.appendChild(tr);
+      });
+    }
 
-    // 3. COLORS TABLE (Black, Burgundy, Blue, Green, Orange, Beige, Yellow)
+    // 3. COLORS TABLE
     const colorsTbody = document.querySelector("#colorsTable tbody");
-    colorsTbody.innerHTML = "";
-    (colors || []).forEach(c => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>
-          <span class="color-swatch" style="background-color: ${c.hex};"></span>
-          <strong>${c.name}</strong>
-        </td>
-        <td><span class="badge badge-primary">${c.count} pcs</span></td>
-        <td><strong>${formatPct(c.share)}</strong></td>
-      `;
-      colorsTbody.appendChild(tr);
-    });
+    if (colorsTbody) {
+      colorsTbody.innerHTML = "";
+      (colors || []).forEach(c => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = '<td><span class="color-swatch" style="background-color: ' + c.hex + ';"></span><strong>' + c.name + '</strong></td>' +
+          '<td><span class="badge badge-primary">' + c.count + ' pcs</span></td>' +
+          '<td><strong>' + formatPct(c.share) + '</strong></td>';
+        colorsTbody.appendChild(tr);
+      });
+    }
 
     // 4. ACCESSORIES TABLE
     const accTbody = document.querySelector("#accessoriesTable tbody");
-    accTbody.innerHTML = "";
-    if (!accessories || accessories.length === 0) {
-      accTbody.innerHTML = "<tr><td colspan="4" style="color: var(--text-dim);">No accessories selected yet.</td></tr>";
-    } else {
-      accessories.forEach(a => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td><strong>${a.name}</strong></td>
-          <td><span class="badge badge-primary">${a.count} pcs</span></td>
-          <td><span class="badge badge-success">${formatPct(a.attachRate)}</span></td>
-          <td>${formatEur(a.revenue)}</td>
-        `;
-        accTbody.appendChild(tr);
-      });
+    if (accTbody) {
+      accTbody.innerHTML = "";
+      if (!accessories || accessories.length === 0) {
+        accTbody.innerHTML = '<tr><td colspan="4" style="color: var(--text-dim);">No accessories selected yet.</td></tr>';
+      } else {
+        accessories.forEach(a => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = '<td><strong>' + a.name + '</strong></td>' +
+            '<td><span class="badge badge-primary">' + a.count + ' pcs</span></td>' +
+            '<td><span class="badge badge-success">' + formatPct(a.attachRate) + '</span></td>' +
+            '<td>' + formatEur(a.revenue) + '</td>';
+          accTbody.appendChild(tr);
+        });
+      }
     }
 
     // 5. CONFIGURATIONS TABLE
     const confTbody = document.querySelector("#configurationsTable tbody");
-    confTbody.innerHTML = "";
-    if (!configurations || configurations.length === 0) {
-      confTbody.innerHTML = "<tr><td colspan="3" style="color: var(--text-dim);">No configurations recorded yet.</td></tr>";
-    } else {
-      configurations.forEach(cfg => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td><strong>${cfg.description}</strong></td>
-          <td><span class="badge badge-primary">${cfg.count} pcs</span></td>
-          <td><strong>${formatEur(cfg.totalValue)}</strong></td>
-        `;
-        confTbody.appendChild(tr);
-      });
+    if (confTbody) {
+      confTbody.innerHTML = "";
+      if (!configurations || configurations.length === 0) {
+        confTbody.innerHTML = '<tr><td colspan="3" style="color: var(--text-dim);">No configurations recorded yet.</td></tr>';
+      } else {
+        configurations.forEach(cfg => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = '<td><strong>' + cfg.description + '</strong></td>' +
+            '<td><span class="badge badge-primary">' + cfg.count + ' pcs</span></td>' +
+            '<td><strong>' + formatEur(cfg.totalValue) + '</strong></td>';
+          confTbody.appendChild(tr);
+        });
+      }
     }
 
-    // 6. DEDICATED PURCHASE INTENTS TABLE
-    // Date | Model | Color | Accessories | Total | Email | Source | Region
+    // 6. INTENTS TABLE
+    renderIntentsTable(intents || []);
+  }
+
+  function renderIntentsTable(intents) {
+    currentIntents = intents || [];
+    applyIntentsFilter();
+  }
+
+  function applyIntentsFilter() {
+    const filterQuery = (document.getElementById("intentsSearchInput")?.value || "").toLowerCase().trim();
     const intentsTbody = document.querySelector("#intentsTable tbody");
+    if (!intentsTbody) return;
+
     intentsTbody.innerHTML = "";
-    if (!intents || intents.length === 0) {
-      intentsTbody.innerHTML = "<tr><td colspan="8" style="color: var(--text-dim);">No purchase intents received yet.</td></tr>";
-    } else {
-      intents.forEach(item => {
-        const tr = document.createElement("tr");
-        let accStr = "-";
-        try {
-          const accArr = JSON.parse(item.accessories_json || "[]");
-          if (accArr.length) {
-            accStr = accArr.map(a => `${a.name} ×${a.qty || 1}`).join(", ");
-          }
-        } catch (e) {}
+    const filtered = currentIntents.filter(item => {
+      if (!filterQuery) return true;
+      const hay = [
+        item.email, item.model_name, item.final_color, item.color_name,
+        item.source, item.postal_code, item.city, item.name, item.phone
+      ].join(" ").toLowerCase();
+      return hay.includes(filterQuery);
+    });
 
-        const colorText = item.final_color || item.color_name || "Black";
-        const modelText = item.model_name || `${item.size_inch}″ Kamado`;
-        const regionText = (item.postal_code || item.city) ? `${item.postal_code || ""} ${item.city || ""}`.trim() : "NL";
-
-        tr.innerHTML = `
-          <td><small>${formatDate(item.created_at)}</small></td>
-          <td><strong>${modelText}</strong></td>
-          <td>${colorText}</td>
-          <td><small>${accStr}</small></td>
-          <td><strong style="color: var(--success);">${formatEur(item.total_amount_eur)}</strong></td>
-          <td><code>${item.email || "-"}</code></td>
-          <td><span class="badge badge-source">${item.source || "Direct"}</span></td>
-          <td><small>${regionText}</small></td>
-        `;
-        intentsTbody.appendChild(tr);
-      });
+    if (filtered.length === 0) {
+      intentsTbody.innerHTML = '<tr><td colspan="9" style="color: var(--text-dim); text-align: center; padding: 1.5rem;">' +
+        (currentIntents.length === 0 ? "No purchase intents received yet." : "No orders match search query.") +
+        '</td></tr>';
+      return;
     }
+
+    filtered.forEach(item => {
+      const tr = document.createElement("tr");
+      let accStr = "-";
+      try {
+        const accArr = JSON.parse(item.accessories_json || "[]");
+        if (accArr.length) {
+          accStr = accArr.map(a => a.name + " ×" + (a.qty || 1)).join(", ");
+        }
+      } catch (e) {}
+
+      const colorText = item.final_color || item.color_name || "Black";
+      const modelText = item.model_name || (item.size_inch + "″ Kamado");
+      const regionText = (item.postal_code || item.city) ? (item.postal_code + " " + item.city).trim() : "NL";
+
+      tr.innerHTML = '<td><small>' + formatDate(item.created_at) + '</small></td>' +
+        '<td><strong>' + modelText + '</strong></td>' +
+        '<td>' + colorText + '</td>' +
+        '<td><small>' + accStr + '</small></td>' +
+        '<td><strong style="color: var(--success);">' + formatEur(item.total_amount_eur) + '</strong></td>' +
+        '<td><code>' + (item.email || "-") + '</code></td>' +
+        '<td><span class="badge badge-source">' + (item.source || "Direct") + '</span></td>' +
+        '<td><small>' + regionText + '</small></td>' +
+        '<td style="text-align: right;">' +
+          '<button class="btn-delete-lead" data-id="' + item.id + '" data-email="' + (item.email || "") + '" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; padding: 0.25rem 0.6rem; border-radius: 4px; font-size: 0.75rem; cursor: pointer; transition: all 0.2s;" title="Delete this order / test lead">' +
+            '🗑️ Delete' +
+          '</button>' +
+        '</td>';
+      intentsTbody.appendChild(tr);
+    });
+  }
+
+  async function deleteSingleIntent(id, email) {
+    if (!confirm("Are you sure you want to delete this order / test lead (" + (email || id) + ")?\n\nThis will remove it from all database records and immediately recalculate KPIs and conversion metrics.")) {
+      return;
+    }
+    try {
+      const res = await fetch("/api/market-test/intent?id=" + encodeURIComponent(id), {
+        method: "DELETE",
+        headers: { "Authorization": "Bearer " + adminToken }
+      });
+      const data = await res.json();
+      if (data.ok) {
+        loadDashboardData();
+      } else {
+        alert("Failed to delete: " + (data.error || "Unknown error"));
+      }
+    } catch (err) {
+      alert("Network error: " + err.message);
+    }
+  }
+
+  async function purgeAllTestOrders() {
+    const testLeads = currentIntents.filter(item => {
+      const em = (item.email || "").toLowerCase();
+      return em.includes("test") || em.includes("example.nl") || em.includes("example.com") || em.includes("tezst");
+    });
+
+    if (testLeads.length === 0) {
+      alert("No test orders found matching test/example email patterns.");
+      return;
+    }
+
+    if (!confirm("Found " + testLeads.length + " test order(s):\n" + testLeads.map(l => "• " + l.email).join("\n") + "\n\nAre you sure you want to delete all of them?\nThis will immediately update all KPIs.")) {
+      return;
+    }
+
+    let deleted = 0;
+    for (const lead of testLeads) {
+      try {
+        const res = await fetch("/api/market-test/intent?id=" + encodeURIComponent(lead.id), {
+          method: "DELETE",
+          headers: { "Authorization": "Bearer " + adminToken }
+        });
+        if (res.ok) deleted++;
+      } catch (e) {}
+    }
+
+    alert("Successfully deleted " + deleted + " test order(s).");
+    loadDashboardData();
   }
 
   // --- EVENTS ---
@@ -195,7 +277,7 @@
       purgeAllTestOrders();
     });
 
-    document.getElementById("authBtn").addEventListener("click", () => {
+    document.getElementById("authBtn")?.addEventListener("click", () => {
       const pwd = document.getElementById("adminPwd").value.trim();
       if (!pwd) return;
       adminToken = pwd;
@@ -203,19 +285,19 @@
       loadDashboardData();
     });
 
-    document.getElementById("adminPwd").addEventListener("keydown", (e) => {
-      if (e.key === "Enter") document.getElementById("authBtn").click();
+    document.getElementById("adminPwd")?.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") document.getElementById("authBtn")?.click();
     });
 
-    document.getElementById("logoutBtn").addEventListener("click", () => {
+    document.getElementById("logoutBtn")?.addEventListener("click", () => {
       sessionStorage.removeItem("kk_nl_admin_token");
       adminToken = "";
       showAuthOverlay();
     });
 
-    document.getElementById("refreshBtn").addEventListener("click", loadDashboardData);
+    document.getElementById("refreshBtn")?.addEventListener("click", loadDashboardData);
 
-    document.getElementById("exportIntentsBtn").addEventListener("click", () => {
+    document.getElementById("exportIntentsBtn")?.addEventListener("click", () => {
       window.location.href = "/api/market-test/export-intents.csv?token=" + encodeURIComponent(adminToken);
     });
 

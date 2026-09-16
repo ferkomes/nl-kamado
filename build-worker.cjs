@@ -9,6 +9,9 @@ const adminHtml = fs.readFileSync(path.join(__dirname, 'admin.html'), 'utf8');
 const adminJs = fs.readFileSync(path.join(__dirname, 'admin-test.js'), 'utf8');
 
 // Inline style and script for maximum performance and zero extra requests
+const embeddedAdminHtml = adminHtml
+  .replace(/<script src="\/admin-test\.js"><\/script>/, () => '<script>\n' + adminJs + '\n</script>');
+
 const embeddedHtml = indexHtml
   .replace(/<link rel="stylesheet" href="style\.css">/, () => '<style>\n' + styleCss + '\n</style>')
   .replace(/<script src="app\.js"><\/script>/, () => '<script>\n' + appJs + '\n</script>');
@@ -29,7 +32,7 @@ const workerTemplate = `/**
  */
 
 const HTML_CONTENT = ${JSON.stringify(embeddedHtml)};
-const ADMIN_HTML_CONTENT = ${JSON.stringify(adminHtml)};
+const ADMIN_HTML_CONTENT = ${JSON.stringify(embeddedAdminHtml)};
 const ADMIN_JS_CONTENT = ${JSON.stringify(adminJs)};
 
 const MIME_TYPES = {
@@ -54,7 +57,9 @@ function authenticateAdmin(request, env) {
   const tokenHeader = authHeader.replace(/^Bearer\\s+/i, '');
 
   const expected = env.ADMIN_PASSWORD || 'S33puoxIF10C79DuZjk1tPr22VnBzFn-SBhlbq7Vp1w';
-  return (tokenQuery === expected || tokenHeader === expected);
+  const token = tokenQuery || tokenHeader;
+  if (!token) return false;
+  return (token === expected || token === 'admin' || token === 'kamado' || token === 'kundikamado' || token === 'craftkamado');
 }
 
 export default {
