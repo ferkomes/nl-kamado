@@ -20,7 +20,7 @@ binding = "MAIL_SENDER"
 service = "mail-sender"
 
 [vars]
-SITE_URL = "https://nl-kamado.ferkomes.workers.dev"
+SITE_URL = "https://smokeykamado.nl"
 APP_ENV = "production"
 STORE_NAME = "SmokeyKamado Nederland"
 CURRENCY = "EUR"

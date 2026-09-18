@@ -1751,3 +1751,8 @@ html { scroll-padding-top: 145px; }
 #homeVideos { padding-top:40px; padding-bottom:40px; }
 .home-video-stage .gallery-video { aspect-ratio:16/9; }
 @media (prefers-reduced-motion:reduce) { .gallery-thumbs { scroll-behavior:auto; } }
+
+.comparison-scroll { overflow-x:auto; }
+.buying-guide table { width:100%; border-collapse:collapse; min-width:520px; }
+.buying-guide th, .buying-guide td { padding:14px 10px; text-align:left; border-bottom:1px solid var(--border-color); }
+.buying-guide p { max-width:850px; line-height:1.7; margin:20px 0; }

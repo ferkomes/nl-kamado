@@ -443,15 +443,15 @@ describe('SmokeyKamado Netherlands Market Test Suite', () => {
       assert.ok(text.includes('hreflang="en"'));
     });
 
-    test('GET / contains rich SEO meta, FAQ schema and breadcrumbs', async () => {
+    test('GET / contains Dutch search metadata and an honest collection schema', async () => {
       const req = new Request('http://localhost/', { method: 'GET' });
       const res = await workerModule.fetch(req, mockEnv);
       assert.equal(res.status, 200);
       const body = await res.text();
-      assert.ok(body.includes('SmokeyKamado Nederland | Premium All-Inclusive Kamado BBQ'));
+      assert.ok(body.includes('Kamado BBQ kopen? Vergelijk 18–27 inch | SmokeyKamado'));
       assert.ok(body.includes('application/ld+json'));
-      assert.ok(body.includes('"@type": "FAQPage"'));
-      assert.ok(body.includes('"@type": "Product"'));
+      assert.ok(body.includes('"@type":"ItemList"'));
+      assert.ok(!body.includes('"@type":"AggregateOffer"'));
       assert.ok(body.includes('Veelgestelde Vragen over de Kamado BBQ'));
     });
   });
@@ -617,7 +617,7 @@ test('every kamado and accessory has a directly accessible product page with its
     assert.ok(html.includes('rel="canonical" href="https://example.test' + path + '"'));
     assert.ok(html.includes('class="page-' + (path.startsWith('/kamados') ? 'kamado' : 'accessory') + '"'));
     const schema = JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
-    assert.equal(schema.url, 'https://example.test' + path);
+    assert.equal(schema['@graph'].find(node => node['@type'] === 'Product').url, 'https://example.test' + path);
     for (const match of html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)) {
       if (!match[1].includes('ld+json')) new vm.Script(match[2]);
     }
@@ -738,4 +738,37 @@ test('preview domain stays noindex until permanent-domain canonical configuratio
   const sitemap = await (await worker.fetch(new Request('https://smokeykamado.nl/sitemap.xml'),{SITE_URL:'https://smokeykamado.nl'})).text();
   assert.match(sitemap,/https:\/\/smokeykamado.nl\/kamados\/27/);
   assert.doesNotMatch(sitemap,/<lastmod>|workers.dev/);
+});
+
+test('SEO: canonical language variants, crawlable accessories, unique H1s and complete reciprocal sitemap', async () => {
+  const worker = (await import('../worker.js')).default;
+  const env={SITE_URL:'https://smokeykamado.nl'};
+  const get=async path=>(await worker.fetch(new Request('https://smokeykamado.nl'+path),env)).text();
+  const home=await get('/');
+  const visible=home.slice(home.indexOf('<body'),home.indexOf('<script>',home.indexOf('<body')));
+  assert.ok(visible.indexOf('id="collectie"')<visible.indexOf('id="accessoires"'));
+  assert.ok(visible.indexOf('id="accessoires"')<visible.indexOf('id="modellen"'));
+  assert.equal((visible.match(/<h1\b/g)||[]).length,1);
+  assert.match(visible,/href="\/accessories\/rotisserie"/);
+  assert.match(visible,/href="\/kamados\/18-basic"/);
+  assert.doesNotMatch(visible,/Jan van der Meer|30%|40%/);
+  for(const path of ['/','/kamados/27','/kamados/18-basic','/accessories/pizza-stone']) {
+    for(const lang of ['nl','en']) {
+      const url=path+(lang==='en'?'?lang=en':'');
+      const html=await get(url);
+      assert.match(html,new RegExp('<html lang="'+lang+'"'));
+      assert.ok(html.includes('rel="canonical" href="https://smokeykamado.nl'+url+'"'));
+      assert.ok(html.includes('hreflang="en" href="https://smokeykamado.nl'+path+'?lang=en"'));
+      const body=html.slice(html.indexOf('<body'),html.indexOf('<script>',html.indexOf('<body')));
+      assert.equal((body.match(/<h1\b/g)||[]).length,1,url);
+      if(lang==='en') assert.match(body,/View details/);
+      const schema=JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
+      assert.ok(schema['@graph']);
+      assert.doesNotMatch(JSON.stringify(schema),/AggregateOffer|aggregateRating|InStock/);
+    }
+  }
+  const map=await get('/sitemap.xml');assert.equal((map.match(/<loc>/g)||[]).length,24);
+  assert.doesNotMatch(map,/workers.dev|lang=nl|\/admin|\/api/);
+  const redirect=await worker.fetch(new Request('https://smokeykamado.nl/kamados/27/?lang=en'),env);
+  assert.equal(redirect.status,301);assert.equal(redirect.headers.get('Location'),'https://smokeykamado.nl/kamados/27?lang=en');
 });

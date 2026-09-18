@@ -151,14 +151,11 @@ A közös levélküldő holland sablonjának márkázása a szomszédos
 feladónevének és fejlécének éles váltásához azt a Workert is telepíteni kell.
 
 
-### Átmeneti tesztcím a DNS-frissülésig
+### Végleges domain és tesztcím
 
-Jelenleg: https://nl-kamado.ferkomes.workers.dev (SmokeyKamado márkával).
-A `wrangler.toml` `SITE_URL` értéke ezt a működő címet használja a keresőadatokban,
-a sitemapben és az értesítések adminlinkjében. Nincs átirányítás az új domainre.
-Amikor az új domain már a Workerhez van kapcsolva és HTTPS-en elérhető,
-állítsd a `SITE_URL` értékét `https://smokeykamado.nl`-re, majd telepítsd újra.
-
+A `smokeykamado.nl` HTTPS elérése 2026-09-18-án ellenőrizve. A `SITE_URL` most
+`https://smokeykamado.nl`: ezt használja a canonical, sitemap és az értesítések adminlinkje.
+A `https://nl-kamado.ferkomes.workers.dev` továbbra is tesztelhető, de `noindex` fejlécet kap.
 
 ### Premium collectie — vernieuwde winkelpagina
 
@@ -272,9 +269,35 @@ Van automatikus **`/sitemap.xml`** és **`/robots.txt`**. A sitemap tartalmazza 
 Érdemes a valós domainen publikálni az őszintén érdeklődésmérésként megjelölt kínálatot, de Google-indexelést csak a végleges domain beállítása után kérj:
 
 1. A `smokeykamado.nl` Cloudflare-státusza legyen Active; rendeld a domaint az `nl-kamado` Workerhez, és ellenőrizd a HTTPS elérést.
-2. A `wrangler.toml` `SITE_URL` értékét állítsd `https://smokeykamado.nl` címre, majd build/deploy. Ez frissíti a canonical URL-eket, a sitemap linkjeit és az email dashboard-linkjét is. Addig a tesztcím marad működőképes.
+2. A `wrangler.toml` `SITE_URL` már `https://smokeykamado.nl`. Telepítéskor ez kerül a canonical URL-ekbe, sitemapbe és az email dashboard-linkjébe.
 3. Ellenőrizd a kezdőlap és egy termékoldal canonical címét, a `/sitemap.xml` URL-jeit, valamint hogy a végleges oldalon nincs `X-Robots-Tag: noindex` fejléc. A Workers tesztdomain mindig `noindex`; a végleges domain is az marad, amíg a konfiguráció tesztcímre mutat. Az admin mindig `noindex`.
 4. Search Console → **Add property → Domain → smokeykamado.nl**. A Google által megadott TXT rekordot add hozzá a Cloudflare DNS-ben, majd Verify.
 5. **Sitemaps** → küldd be a `https://smokeykamado.nl/sitemap.xml` címet. **URL Inspection** alatt a főoldalra kérhetsz indexelést; a többi URL-t a sitemap alapján fedezheti fel Google. A beküldés nem garantál indexelést vagy rangsorolást.
 
 Forrás: [Google sitemap útmutató](https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap), [újrafeltérképezés kérése](https://developers.google.com/search/docs/crawling-indexing/ask-google-to-recrawl).
+
+
+## SEO audit és javítások — 2026-09-18
+
+A publikus domain működött, de a sitemap és canonical még a Workers tesztdomainre mutatott. Ezt javítottuk. A kiegészítők a kezdőlapon közvetlenül a kamadók után jelennek meg.
+
+- 24 előre renderelt nyelvi URL: kezdőlap + 5 kamado + 6 kiegészítő, hollandul és angolul. Egyértelmű canonical és kölcsönös `hreflang`; az angol tartalom nem csak JavaScript után látható. A nyelvváltó a megfelelő URL-re navigál.
+- Oldalanként egy H1, témához illő title/description, termékneves képleírások; képméretek, kiegészítőképek késleltetett betöltése. Az előrenderelés buildkor történik, nem minden Worker-kéréskor.
+- Kezdőlapi összehasonlító táblázat valódi katalógusadatokkal, Basic/Premium és grillrooster-méret megkülönböztetése. A kiegészítők és a Basic külön oldala JavaScript nélkül is linkelve van.
+- Organization, WebSite, termékoldali Product/BreadcrumbList, kezdőlapi ItemList. Nincs kitalált értékelés, készletígéret vagy vásárolható ajánlat strukturált adatként: az oldal továbbra is érdeklődésmérés. Ezért jelenleg nem várunk kereskedői rich result jogosultságot.
+- A nem igazolt mintavélemények és a bizonyítatlan 30%/40%-os teljesítményígéretek kikerültek. Nincs fiktív céges térképpont. A termékútvonalak perjeles változata és az index.html 301-gyel az alap URL-re vezet.
+- Sitemap: `/sitemap.xml`, 24 URL, admin/API nélkül; csak valódi nyelvi oldalak, napi hamis lastmod nélkül. Support-oldalak egyelőre noindex.
+
+Célzott keresési témák (nem mért keresési volumen szerinti rangsor):
+
+| Oldal | Holland keresési szándék |
+| --- | --- |
+| Kezdőlap | kamado kopen, kamado BBQ, keramische barbecue, kamado vergelijken |
+| Kamado részletek | kamado 18/21/23/27 inch, Basic/Premium kamado, grillrooster méret és felszereltség |
+| Kiegészítők | kamado accessoires, kamado hoes, rotisserie kamado, pizzasteen kamado, gietijzeren rooster |
+
+Search Console-ban **Sitemaps → Add a new sitemap: `https://smokeykamado.nl/sitemap.xml`**. Ha a beviteli mező már tartalmazza a domain előtagját, csak `sitemap.xml`. Domain tulajdonságot DNS TXT rekorddal igazolj. Ez az audit nem küldött be sitemapet a Google-fiókodba.
+
+A helyezés nem garantálható. Következő, valódi adatoktól függő lépések: Search Console keresési kifejezések/CTR/indexelési hibák mérése, végleges eladói adatok és tényleges rendelhetőség, saját termékfotók és használati videók, valós vásárlói vélemények. Keresési volumenhez Keyword Planner vagy más valós kulcsszóadatforrás kell; a jelenlegi témákat relevancia alapján választottuk. Core Web Vitals terepi eredmény csak elegendő valódi forgalom után értékelhető, erre az audit nem állít elért pontszámot.
+
+Google-források: [webshop navigáció](https://developers.google.com/search/docs/specialty/ecommerce/help-google-understand-your-ecommerce-site-structure), [webshop indulása](https://developers.google.com/search/docs/specialty/ecommerce/how-to-launch-an-ecommerce-website), [Product strukturált adatok](https://developers.google.com/search/docs/appearance/structured-data/product).

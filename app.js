@@ -75,10 +75,10 @@
     },
     "23": {
       key: "23",
-      name: { nl: "SmokeyKamado 23″ Bestseller", en: "SmokeyKamado 23″ Bestseller" },
+      name: { nl: "SmokeyKamado 23″ Premium", en: "SmokeyKamado 23″ Premium" },
       sizeInch: "23",
       modelCode: "CK-23BEST",
-      badge: { nl: "🔥 Bestseller / Meest Gekozen", en: "🔥 Bestseller / Most Popular" },
+      badge: { nl: "Premium / Air Hinge", en: "Premium / Air Hinge" },
       price: 1019,
       origPrice: 1178,
       grate: "Ø 52.3 cm",
@@ -213,15 +213,15 @@
       faqSectionTitle: "Veelgestelde Vragen over de Kamado BBQ",
       faqSectionDesc: "Alles wat je moet weten over het kiezen, grillen en onderhouden van jouw SmokeyKamado keramische barbecue.",
       faqQ1: "Wat maakt een keramische kamado barbecue superieur aan een gewone barbecue?",
-      faqA1: "Een keramische kamado BBQ is gemaakt van extra dik, hittebestendig Mullite keramiek (circa 3 cm dik). Deze enorme thermische massa houdt hitte en vocht ongeëvenaard goed vast in de kookkamer. Waar een traditionele stalen barbecue het vlees snel uitdroogt door tochtige luchtstromen, blijft bij een SmokeyKamado tot wel 40% meer vleessap behouden. Bovendien verbruik je tot 30% minder houtskool en kun je met één lading kwaliteits-houtskool tot wel 24 uur continu koken op 110°C (low & slow), of temperaturen bereiken tot 400°C voor authentieke steenovens pizza's en knapperige steaks.",
+      faqA1: "Een keramische kamado is een houtskoolbarbecue met een dikwandige keramische behuizing. Die houdt warmte vast en is geschikt voor direct grillen, indirect garen, roken en pizza bakken. Temperatuur en brandduur hangen af van de luchttoevoer, brandstof, belading en omstandigheden.",
       faqQ2: "Welke kamado maat (18, 21, 23 of 27 inch) is het meest geschikt voor mij?",
-      faqA2: "<p>De juiste maat hangt af van jouw huishouden en kookstijl:</p><ul><li><strong>18″ Premium:</strong> Ideaal voor balkons, stadstuinen en gezinnen van 2 tot 4 personen. Compact en snel op temperatuur.</li><li><strong>21″ Veelzijdig:</strong> Perfect voor gezinnen van 4 tot 6 personen die graag gerechten tegelijkertijd direct en indirect bereiden.</li><li><strong>23″ Bestseller:</strong> De populairste maat in Nederland! Geschikt voor 6 tot 10 personen. Ruim genoeg voor meerdere hele kippen, meerdere ribbenrekken of grote briskets en een volwaardige pizzasteen.</li><li><strong>27″ HoReCa Reus:</strong> De ultieme barbecue voor grote tuinen, professionele horeca en buitenkeukens waar grote gezelschappen tegelijk bediend worden.</li></ul>",
+      faqA2: "Kies op basis van de diameter van het grillrooster, je kookstijl en de beschikbare buitenruimte. De 18 inch is beschikbaar als Basic of Premium. De 21, 23 en 27 inch hebben de Premium-uitrusting. Bekijk de vergelijkingstabel voor roosterdiameters en indicatieve aantallen personen; die hangen ook af van het gerecht.",
       faqQ3: "Wat zit er standaard inbegrepen in het SmokeyKamado All-Inclusive pakket?",
       faqA3: "<p>Premium specificatie:</p><ul><li>Zwarte HDPE zijtafels: Massief zwarte, inklapbare HDPE zijtafels met gereedschapshaken.</li><li>Compleet Divide & Conquer: Rek, 2 keramische halve-maan hitteschilden en 2 RVS halve-maan grillroosters.</li><li>2 gietijzeren halve-maan roosters: Gevraagde Premium specificatie: 1 complete set van 2 roosters. Inbegrepen levering nog te bevestigen.</li><li>RVS aslade: Uitschuifbare roestvaststalen aslade.</li><li>RVS wood-chip feeder: Complete buisvormige roestvaststalen wood-chip feeder.</li><li>Waterdichte Oxford hoes: Hoes in de juiste maat, van Oxford-stof met waterdichte PU-laag.</li><li>Premium zwart onderstel: Zwaar zwart onderstel met massief bodemschap en 4 zware wielen, waarvan 2 geremd.</li><li>Zwarte banden, RVS bevestigingen: Zware zwarte metalen banden. RVS schroeven, bouten, moeren, ringen en bevestigingsmateriaal voor de volledige montage.</li><li>Strong Hinge / Air Hinge & sluiting: 18″ Premium: Strong Hinge. 21″/23″/27″: verstelbare Air Hinge. Inclusief dekselsluiting en zwarte handgreep.</li><li>RVS onderste ventilatieschuif: Roestvaststalen luchtregeling aan de onderzijde.</li><li>Zwarte topventilatie: Premium zwarte top vent met dubbele handgreep.</li><li>Zwarte thermometer: Ingebouwde zwarte thermometer.</li><li>Glasvezel pakking: Fiberglass gasket rondom de sluiting.</li><li>Complete keramische vuurbox: Zware meerdelige keramische vuurbox, complete vuurring en zware houtskoolplaat / vuurrooster.</li><li>Matte Bubble Glaze: Matte Bubble Glaze keramische behuizing en deksel in de opgegeven Pantone-kleuren.</li></ul>",
       faqQ4: "Hoe verloopt de bezorging en palletlevering in Nederland?",
       faqA4: "Geplande bezorgkosten op het Nederlandse vasteland: 18″/21″/23″ €99, 27″ €129 incl. btw per kamado. Losse accessoires: €7,95 per bestelling. Levering aan de stoeprand op een bereikbare, verharde plek. Eilanden en bijzondere adressen op offerte. Dit is een interessepeiling; kosten en levertijd worden vóór een eventuele aankoop bevestigd. <a href=\"/support/shipping\">Lees de bezorginformatie</a>.",
       faqQ5: "Kan de keramische kamado het hele jaar door buiten blijven staan in de Nederlandse winter?",
-      faqA5: "Ja, de SmokeyKamado is speciaal ontwikkeld voor het wisselvallige Noord-Europese klimaat. Het hoogwaardige Mullite keramiek en het roestvaste geglazuurde oppervlak zijn ongevoelig voor vorst, regen en sneeuw. Wij adviseren om de meegeleverde zware beschermhoes te gebruiken wanneer je de kamado niet gebruikt, zodat metalen onderdelen en HDPE tafels in topconditie blijven.",
+      faqA5: "Bescherm de kamado met een passende hoes wanneer hij is afgekoeld. Houd ventilatie en onderdelen schoon en droog en volg de onderhoudsinstructies. Keramiek en metalen onderdelen kunnen bij onjuist gebruik of onderhoud beschadigen.",
 
       cartTriggerText: "Winkelwagen",
       heroTitle: "Keramisch Meesterschap.<br><span class=\"highlight\">All-Inclusive</span> Geleverd.",
@@ -234,7 +234,7 @@
       tabTitle_18_basic: "18″ Basic",
       tabTitle_18_premium: "18″ Premium",
       tabTitle_21: "21″ Veelzijdig",
-      tabTitle_23: "23″ Bestseller",
+      tabTitle_23: "23″ Premium",
       tabTitle_27: "27″ HoReCa Reus",
       tabPopularTag: "Meest Gekozen",
       specLabelGrate: "Grillrooster",
@@ -268,7 +268,7 @@
 
       // Accessories Section
       accSectionTag: "Maatwerk Accessoires",
-      accSectionTitle: "Optionele Uitbreidingen op Maat",
+      accSectionTitle: "Kamado accessoires op maat",
       accSectionDescTemplate: "Prijzen en afmetingen van onderstaande accessoires passen zich automatisch aan op jouw geselecteerde <strong id=\"accSelectedSizeLabel\">{size}″ Kamado</strong>.",
       addAccBtn: "+ Toevoegen",
       addedAccBtn: "✓ Toegevoegd",
@@ -278,9 +278,9 @@
       whySectionTitle: "Ontwikkeld voor Echte BBQ Fanaten",
       whySectionDesc: "SmokeyKamado is ontstaan uit één heldere filosofie: een compromisloze keramische barbecue bouwen met de allerbeste materialen, zónder de torenhoge marketingopslagen van gevestigde merken.",
       whyFeatTitle1: "Speciaal Mullite Keramiek",
-      whyFeatDesc1: "Uitzonderlijk bestand tegen thermische schokken en temperaturen tot wel 1.000°C. Scheurt niet bij vrieskou of plotse hitte.",
-      whyFeatTitle2: "30% Zuiniger Houtskoolverbruik",
-      whyFeatDesc2: "Dankzij de superieure thermische massa kook je met één lading kwaliteits-houtskool tot wel 24 uur continu op 110°C.",
+      whyFeatDesc1: "De keramische behuizing houdt warmte vast. Volg de gebruiksinstructies en voorkom plotselinge temperatuurwisselingen.",
+      whyFeatTitle2: "Warmte vasthouden voor low & slow",
+      whyFeatDesc2: "Regel de temperatuur met de boven- en onderventilatie. Gebruik hitteschilden voor indirect garen.",
       whyFeatTitle3: "Direct Contact & Persoonlijke Service",
       whyFeatDesc3: "Onze experts staan altijd voor je klaar met advies over recepten, onderhoud en techniek.",
 
@@ -388,15 +388,15 @@
       faqSectionTitle: "Frequently Asked Questions About Kamado BBQ",
       faqSectionDesc: "Everything you need to know about choosing, grilling and maintaining your SmokeyKamado ceramic barbecue grill.",
       faqQ1: "What makes a ceramic kamado barbecue superior to a standard grill?",
-      faqA1: "A ceramic kamado BBQ is crafted from heavy-duty, heat-retaining Mullite ceramic (approx. 3 cm thick). This massive thermal mass retains heat and moisture exceptionally well inside the dome. While a traditional steel grill quickly dries meat out due to harsh drafts, SmokeyKamado preserves up to 40% more natural meat juices. Furthermore, you consume up to 30% less charcoal and can cook low & slow at 110°C for up to 24 continuous hours on a single load of lump charcoal, or reach searing heat up to 400°C for authentic stone-baked pizzas and steaks.",
+      faqA1: "A ceramic kamado is a charcoal barbecue with a thick ceramic body that retains heat. It can be used for direct grilling, indirect cooking, smoking and pizza baking. Temperature and burn time depend on airflow, fuel, food load and conditions.",
       faqQ2: "Which kamado size (18, 21, 23 or 27 inch) is best suited for me?",
-      faqA2: "<p>The ideal size depends on your household and cooking style:</p><ul><li><strong>18″ Premium:</strong> Ideal for balconies, urban gardens and households of 2–4 people. Compact and rapid heat-up.</li><li><strong>21″ Versatile:</strong> Perfect for families of 4–6 who enjoy simultaneous direct and indirect multi-zone grilling.</li><li><strong>23″ Bestseller:</strong> The most popular size in the Netherlands! Feeds 6–10 guests. Spacious enough for multiple whole chickens, racks of ribs or briskets alongside a pizza stone.</li><li><strong>27″ HoReCa Giant:</strong> The ultimate outdoor kitchen grill for large gatherings, catering and commercial gastronomy.</li></ul>",
+      faqA2: "Choose by cooking-grid diameter, cooking style and available outdoor space. The 18 inch comes as Basic or Premium; the 21, 23 and 27 inch use the Premium specification. See the comparison table for grid diameters and approximate group sizes, which also depend on the food.",
       faqQ3: "What is included out-of-the-box in the SmokeyKamado All-Inclusive package?",
       faqA3: "<p>Premium specification:</p><ul><li>Solid black HDPE side tables: Folding solid black HDPE side tables with tool hooks.</li><li>Complete Divide & Conquer: Rack, 2 ceramic half-moon deflectors and 2 stainless-steel half-moon cooking grids.</li><li>2 cast-iron half-moon grids: Requested Premium specification: 1 complete set of 2 grids. Inclusion still to be confirmed.</li><li>Stainless-steel ash drawer: Slide-out stainless-steel ash drawer.</li><li>Stainless-steel wood-chip feeder: Complete tubular stainless-steel wood-chip feeder.</li><li>Waterproof Oxford cover: Correct-size Oxford fabric cover with waterproof PU coating.</li><li>Premium black cart: Heavy-duty black cart with solid bottom shelf and 4 heavy-duty wheels, 2 with brakes.</li><li>Black bands, stainless hardware: Heavy-duty black metal bands. Stainless-steel screws, bolts, nuts, washers and hardware for complete assembly.</li><li>Strong Hinge / Air Hinge & lid lock: 18″ Premium: Strong Hinge. 21″/23″/27″: adjustable Air Hinge. Includes lid lock and black front handle.</li><li>Stainless-steel bottom vent: Stainless-steel lower airflow control.</li><li>Black top vent: Premium black double-handle top vent.</li><li>Black thermometer: Built-in black thermometer.</li><li>Fiberglass gasket: Fiberglass gasket around the lid seal.</li><li>Complete ceramic firebox: Heavy-duty multi-piece ceramic firebox, complete fire ring and heavy-duty charcoal plate / fire grate.</li><li>Matte Bubble Glaze: Matte Bubble Glaze ceramic body and lid in the specified Pantone colours.</li></ul>",
       faqQ4: "How does delivery and pallet shipping work in the Netherlands?",
       faqA4: "Planned mainland Netherlands delivery: 18″/21″/23″ €99, 27″ €129 incl. VAT per kamado. Accessories only: €7.95 per order. Kerbside delivery to an accessible, paved location. Islands and special access require a quote. This is an interest survey; costs and delivery dates are confirmed before any purchase. <a href=\"/support/shipping?lang=en\">Read delivery information</a>.",
       faqQ5: "Can the ceramic kamado stay outdoors all year round in winter?",
-      faqA5: "Yes, SmokeyKamado is engineered specifically for the demanding North-European climate. The high-grade Mullite ceramic and glazed exterior are impervious to frost, snow and rain. We recommend using the included heavy-duty weatherproof cover when not in use to keep HDPE tables and hardware in pristine condition.",
+      faqA5: "Protect the cooled kamado with a correctly sized cover. Keep vents and components clean and dry, and follow the maintenance instructions. Ceramics and metal parts can be damaged by improper use or care.",
 
       cartTriggerText: "Cart",
       heroTitle: "Ceramic Mastery.<br><span class=\"highlight\">All-Inclusive</span> Delivered.",
@@ -409,7 +409,7 @@
       tabTitle_18_basic: "18″ Basic",
       tabTitle_18_premium: "18″ Premium",
       tabTitle_21: "21″ Versatile",
-      tabTitle_23: "23″ Bestseller",
+      tabTitle_23: "23″ Premium",
       tabTitle_27: "27″ HoReCa Giant",
       tabPopularTag: "Most Popular",
       specLabelGrate: "Cooking Grate",
@@ -453,9 +453,9 @@
       whySectionTitle: "Engineered for True BBQ Enthusiasts",
       whySectionDesc: "SmokeyKamado was born from a clear principle: build an uncompromising ceramic grill using the finest materials, without the inflated markups of traditional brands.",
       whyFeatTitle1: "Specialized Mullite Ceramic",
-      whyFeatDesc1: "Exceptional thermal shock resistance up to 1,000°C. Resists cracking during sudden temperature spikes or winter frosts.",
-      whyFeatTitle2: "30% Lower Charcoal Consumption",
-      whyFeatDesc2: "Superior thermal mass enables low & slow cooking for up to 24 hours continuously on a single batch of quality lump charcoal.",
+      whyFeatDesc1: "The ceramic body retains heat. Follow the operating instructions and avoid sudden temperature changes.",
+      whyFeatTitle2: "Heat retention for low & slow",
+      whyFeatDesc2: "Control temperature with the top and bottom vents. Use heat deflectors for indirect cooking.",
       whyFeatTitle3: "Direct Contact & Dedicated Support",
       whyFeatDesc3: "Our barbecue specialists are always available with hands-on advice for setup, recipes and maintenance.",
 
@@ -583,7 +583,7 @@
   sessionStorage.setItem('smokey_landing', landingPage);
 
   // --- STATE ---
-  let currentLang = localStorage.getItem("craft_nl_lang") || (new URLSearchParams(window.location.search).get("lang") === "en" ? "en" : "nl");
+  let currentLang = new URLSearchParams(window.location.search).get("lang") === "en" ? "en" : "nl";
   const routeParts = window.location.pathname.replace(/\/$/, "").split("/");
   const detailModelKey = routeParts[1] === "kamados" ? routeParts[2].replace("-", "_") : null;
   const detailAccessory = routeParts[1] === "accessories" ? ACCESSORIES.find(a => a.id === routeParts[2]) : null;
@@ -650,6 +650,11 @@
     return new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(Number(amount || 0));
   }
 
+  function navigateLanguage(lang) {
+    const url = new URL(location.href);
+    if (lang === 'en') url.searchParams.set('lang', 'en'); else url.searchParams.delete('lang');
+    location.assign(url.href);
+  }
   // --- I18N SWITCHER ---
   function setLanguage(lang) {
     currentLang = lang === "en" ? "en" : "nl";
@@ -830,10 +835,17 @@
     updateModelConfigurator();
     renderCart();
     renderAccessoryDetail();
+    document.querySelectorAll('a[href^="/"]').forEach(link => {
+      const target = new URL(link.href);
+      if (target.pathname === '/' || target.pathname.startsWith('/kamados/') || target.pathname.startsWith('/accessories/')) {
+        if (currentLang === 'en') target.searchParams.set('lang', 'en'); else target.searchParams.delete('lang');
+        link.href = target.pathname + target.search + target.hash;
+      }
+    });
     if (!detailModelKey && !detailAccessory && publishedMedia['/']?.videos?.length) renderMediaGallery('homeVideoImage', 'homeVideoThumbs', [], '/', 'SmokeyKamado');
     if (detailModelKey) {
       document.getElementById('modelsSectionTitle').textContent = KAMADO_MODELS[activeModelKey].name[currentLang];
-      document.title = KAMADO_MODELS[activeModelKey].name[currentLang] + ' | SmokeyKamado';
+      // Document title is supplied by the server for this URL.
     }
   }
 
@@ -843,7 +855,7 @@
     const size = document.getElementById('detailAccessorySize').value;
     const en = currentLang === 'en';
     document.getElementById('detailAccessoryName').textContent = acc.name[currentLang];
-    document.title = acc.name[currentLang] + ' | SmokeyKamado';
+    // Document title is supplied by the server for this URL.
     document.getElementById('detailAccessoryDesc').textContent = acc.desc[currentLang];
     document.getElementById('detailAccessoryImage').src = acc.image;
     document.getElementById('detailAccessoryImage').alt = acc.name[currentLang];
@@ -952,7 +964,7 @@
       card.hidden = Boolean(inventory) && (isSmall ? quantityFor('18_basic') + quantityFor('18_premium') : quantityFor(key)) <= 0;
       if (isSmall) {
         card.querySelector(".product-edition").firstChild.textContent = "BASIC / PREMIUM ";
-        card.href = inventory && quantityFor('18_premium') <= 0 ? '/kamados/18-basic' : '/kamados/18-premium';
+        card.href = (inventory && quantityFor('18_premium') <= 0 ? '/kamados/18-basic' : '/kamados/18-premium') + (en ? '?lang=en' : '');
         card.querySelector('.product-included').textContent = inventory && quantityFor('18_basic') <= 0 ? 'Premium' : inventory && quantityFor('18_premium') <= 0 ? 'Basic' : 'Basic / Premium';
         card.querySelector('.product-bottom strong').textContent = (en ? 'From ' : 'Vanaf ') + (inventory && quantityFor('18_basic') <= 0 ? '€699' : '€599');
         card.querySelector('.product-audience').textContent = en ? '2–4 people · Choose your edition' : '2–4 personen · Kies je uitvoering';
@@ -996,9 +1008,9 @@
 
       const card = document.createElement("a");
       card.className = "acc-card";
-      card.href = "/accessories/" + acc.id + (acc.isSizeDependent ? "?size=" + currentSize : "");
+      card.href = "/accessories/" + acc.id + (acc.isSizeDependent ? "?size=" + currentSize : "") + (currentLang === "en" ? (acc.isSizeDependent ? "&" : "?") + "lang=en" : "");
       card.innerHTML = `
-        <div class="acc-img-wrap"><img src="${acc.image}" alt="${accName}" class="acc-img">${sizeBadge}</div>
+        <div class="acc-img-wrap"><img src="${acc.image}" alt="${accName}" class="acc-img" loading="lazy" decoding="async" width="400" height="400">${sizeBadge}</div>
         <div class="acc-body"><h4 class="acc-title">${accName}</h4><p class="acc-desc">${accDesc}</p>
           <div class="acc-footer"><div class="acc-price">${formatEur(price)}</div>
           <span class="btn btn-secondary">${currentLang === 'en' ? 'View details ↗' : 'Bekijk details ↗'}</span></div>
@@ -1352,8 +1364,8 @@
     loadCart();
 
     // 1. Language Toggle Buttons
-    document.getElementById("btnLangNl")?.addEventListener("click", () => setLanguage("nl"));
-    document.getElementById("btnLangEn")?.addEventListener("click", () => setLanguage("en"));
+    document.getElementById("btnLangNl")?.addEventListener("click", () => navigateLanguage("nl"));
+    document.getElementById("btnLangEn")?.addEventListener("click", () => navigateLanguage("en"));
 
     // 2. Initial Telemetry
     trackEvent("page_view", {

@@ -26,6 +26,8 @@ const embeddedHtml = indexHtml
 const vm = require('vm');
 const catalogSource = appJs.slice(appJs.indexOf('  const KAMADO_MODELS'), appJs.indexOf('  // --- I18N DICTIONARY'));
 const catalog = vm.runInNewContext(catalogSource + '\n({ KAMADO_MODELS, ACCESSORIES })');
+const seoTranslations = vm.runInNewContext(appJs.slice(appJs.indexOf('  const TRANSLATIONS'), appJs.indexOf('  // --- ATTRIBUTION DETECTION')) + '\nTRANSLATIONS');
+const seoCode = fs.readFileSync(path.join(__dirname, 'server/seo-pages.js'), 'utf8');
 const productPages = {};
 for (const key of ['18_basic', '18_premium', '21', '23', '27']) {
   productPages['/kamados/' + key.replace('_', '-')] = { ...catalog.KAMADO_MODELS[key], type: 'kamado' };
@@ -34,6 +36,19 @@ for (const accessory of catalog.ACCESSORIES) {
   productPages['/accessories/' + accessory.id] = { ...accessory, type: 'accessory' };
 }
 const storefrontPagesCode = fs.readFileSync(path.join(__dirname, 'server/storefront-pages.js'), 'utf8');
+// Pre-render all crawlable language variants during build, not on every request.
+const seoContext = vm.createContext({ PRODUCT_PAGES: productPages, SEO_TRANSLATIONS: seoTranslations });
+vm.runInContext(storefrontPagesCode + '\n' + seoCode, seoContext);
+const seoPages = {};
+for (const route of ['/', ...Object.keys(productPages)]) {
+  seoPages[route] = {};
+  for (const lang of ['nl', 'en']) {
+    const shell = route === '/' ? indexHtml : seoContext.productPageHtml(indexHtml, productPages[route], route);
+    seoPages[route][lang] = seoContext.seoPageHtml(shell, route, lang);
+  }
+}
+const seoSitemapContent = seoContext.seoSitemap();
+
 
 const emailServiceCode = fs.readFileSync(path.join(__dirname, 'server/email-service.js'), 'utf8')
   .replace(/module\.exports\s*=\s*\{[^}]*\};?/g, '');
@@ -50,14 +65,22 @@ const workerTemplate = `/**
  * - Instant owner email notifications upon PURCHASE_INTENT
  */
 
-const HTML_CONTENT = ${JSON.stringify(embeddedHtml)};
+const SEO_PAGES = ${JSON.stringify(seoPages)};
+const SEO_SITEMAP = ${JSON.stringify(seoSitemapContent)};
+const STOREFRONT_CSS = ${JSON.stringify(styleCss)};
+const STOREFRONT_JS = ${JSON.stringify(appJs)};
+function renderedPage(path, lang) {
+  return SEO_PAGES[path][lang]
+    .replace('<link rel="stylesheet" href="style.css">', () => '<style>' + STOREFRONT_CSS + '</style>')
+    .replace('<script src="app.js"></script>', () => '<script>' + STOREFRONT_JS + '</script>');
+}
 const INVENTORY_SEED = ${JSON.stringify(inventorySeed)};
 ${shippingCode}
 ${supportCode}
 ${mediaCode}
 ${inventoryCode}
 const PRODUCT_PAGES = ${JSON.stringify(productPages)};
-${storefrontPagesCode}
+
 const ADMIN_HTML_CONTENT = ${JSON.stringify(embeddedAdminHtml)};
 const ADMIN_JS_CONTENT = ${JSON.stringify(adminJs)};
 
@@ -154,30 +177,7 @@ export default {
     // SEO: sitemap.xml
     if (pathname === '/sitemap.xml') {
 
-      const sitemapXml = [
-        '<?xml version="1.0" encoding="UTF-8"?>',
-        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
-        '  <url>',
-        '    <loc>https://smokeykamado.nl/</loc>',
-        '    <xhtml:link rel="alternate" hreflang="nl" href="https://smokeykamado.nl/?lang=nl"/>',
-        '    <xhtml:link rel="alternate" hreflang="en" href="https://smokeykamado.nl/?lang=en"/>',
-        '    <xhtml:link rel="alternate" hreflang="x-default" href="https://smokeykamado.nl/"/>',
-        '    <changefreq>daily</changefreq>',
-        '    <priority>1.0</priority>',
-        '  </url>',
-        '  <url>',
-        '    <loc>https://smokeykamado.nl/?lang=nl</loc>',
-        '    <changefreq>daily</changefreq>',
-        '    <priority>0.9</priority>',
-        '  </url>',
-        '  <url>',
-        '    <loc>https://smokeykamado.nl/?lang=en</loc>',
-        '    <changefreq>daily</changefreq>',
-        '    <priority>0.8</priority>',
-        '  </url>',
-        '</urlset>'
-      ].join('\\n');
-      return new Response(withSiteUrl(sitemapXml.replace('</urlset>', Object.keys(PRODUCT_PAGES).map(path => '<url><loc>https://smokeykamado.nl' + path + '</loc></url>').join('') + '</urlset>')), {
+      return new Response(withSiteUrl(SEO_SITEMAP), {
         headers: { 'Content-Type': 'application/xml; charset=utf-8', 'Cache-Control': 'public, max-age=86400' }
       });
     }
@@ -186,16 +186,20 @@ export default {
       return new Response(supportPageHtml(pathname, url.searchParams.get('lang')), { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' } });
     }
 
+    const pageLang = url.searchParams.get('lang') === 'en' ? 'en' : 'nl';
+    if (pathname === '/index.html' || (pathname.endsWith('/') && Object.prototype.hasOwnProperty.call(PRODUCT_PAGES, pathname.slice(0, -1)))) {
+      return Response.redirect(url.origin + (pathname === '/index.html' ? '/' : pathname.slice(0,-1)) + url.search, 301);
+    }
     const productPath = pathname.replace(/\\/$/, '');
     if (Object.prototype.hasOwnProperty.call(PRODUCT_PAGES, productPath)) {
-      return new Response(withSiteUrl(productPageHtml(HTML_CONTENT, PRODUCT_PAGES[productPath], productPath)), {
+      return new Response(withSiteUrl(renderedPage(productPath, pageLang)), {
         headers: storefrontHeaders
       });
     }
 
     // 1. Static Storefront HTML
     if (pathname === '/' || pathname === '/index.html') {
-      return new Response(withSiteUrl(HTML_CONTENT), { headers: storefrontHeaders });
+      return new Response(withSiteUrl(renderedPage('/', pageLang)), { headers: storefrontHeaders });
     }
 
     // 2. Admin Dashboard & Admin JS
