@@ -772,3 +772,18 @@ test('SEO: canonical language variants, crawlable accessories, unique H1s and co
   const redirect=await worker.fetch(new Request('https://smokeykamado.nl/kamados/27/?lang=en'),env);
   assert.equal(redirect.status,301);assert.equal(redirect.headers.get('Location'),'https://smokeykamado.nl/kamados/27?lang=en');
 });
+
+
+test('kamado details lead with the selected product while the homepage keeps accessories below the collection', async () => {
+  const worker = (await import('../worker.js')).default;
+  for (const key of ['18-basic', '18-premium', '21', '23', '27']) {
+    for (const lang of ['nl', 'en']) {
+      const html = await (await worker.fetch(new Request('https://smokeykamado.nl/kamados/' + key + '?lang=' + lang), {})).text();
+      assert.ok(html.indexOf('id="modellen"') < html.indexOf('id="accessoires"'), key + ' ' + lang);
+      assert.equal((html.match(/<section id="accessoires"/g) || []).length, 1);
+    }
+  }
+  const home = await (await worker.fetch(new Request('https://smokeykamado.nl/'), {})).text();
+  assert.ok(home.indexOf('id="collectie"') < home.indexOf('id="accessoires"'));
+  assert.ok(home.indexOf('id="accessoires"') < home.indexOf('id="modellen"'));
+});

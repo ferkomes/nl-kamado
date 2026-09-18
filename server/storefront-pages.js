@@ -5,6 +5,14 @@ function productPageHtml(html, product, productPath) {
   const description = product.desc.nl;
   const base = 'https://smokeykamado.nl';
   let page = html.replace('class="page-home"', 'class="page-' + product.type + (product.key === '18_basic' ? ' edition-basic' : '') + '"');
+  // The homepage promotes accessories below the collection; detail pages lead with the selected kamado.
+  if (product.type === 'kamado') {
+    const accessories = page.match(/  <section id="accessoires"[\s\S]*?<\/section>/);
+    if (accessories) {
+      page = page.replace(accessories[0], '');
+      page = page.replace(/(<section id="modellen"[\s\S]*?<\/section>)/, (_, section) => section + '\n' + accessories[0]);
+    }
+  }
   // Restrict replacements to the head so scripts and unrelated links stay intact.
   const headEnd = page.indexOf('</head>');
   let head = page.slice(0, headEnd);
