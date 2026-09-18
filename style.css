@@ -1761,3 +1761,9 @@ html { scroll-padding-top: 145px; }
 .rrp-price, .card-rrp { color:var(--text-muted, #adb5aa); font-size:15px; text-decoration:none; }
 .rrp-note { display:block; width:100%; font-size:12px; line-height:1.5; color:var(--text-muted, #adb5aa); }
 .model-pricing .intro-price-label { width:100%; }
+
+.colour-choice { display:flex; align-items:center; gap:8px; padding:12px; border:1px solid #768276; border-radius:8px; background:transparent; color:inherit; cursor:pointer; }
+.colour-choice[aria-pressed="true"] { border:2px solid #ef9b52; background:#334334; }
+.colour-choice:focus-visible { outline:3px solid #ef9b52; outline-offset:3px; }
+.model-pricing { display:flex; flex-direction:column; align-items:flex-start; gap:8px; }
+.model-pricing .current-price { order:1; }.model-pricing .intro-price-label { order:0; }.model-pricing .rrp-price { order:2; }.model-pricing .rrp-note { order:3; }.model-pricing .vat-tag { order:4; }

@@ -884,8 +884,8 @@
     const elPrice = document.getElementById("activeModelPrice");
     if (elPrice) elPrice.textContent = formatEur(model.price);
     document.getElementById('modelPriceLabel').textContent = currentLang === 'en' ? 'Introductory price' : 'Introductieprijs';
-    document.getElementById('modelRrp').textContent = (currentLang === 'en' ? 'RRP: ' : 'Adviesprijs: ') + formatEur(model.rrp);
-    document.getElementById('modelRrpNote').textContent = currentLang === 'en' ? 'RRP is the recommended list price set by SmokeyKamado, not a previous selling price.' : 'Adviesprijs is de door SmokeyKamado vastgestelde aanbevolen lijstprijs, geen eerdere verkoopprijs.';
+    document.getElementById('modelRrp').textContent = (currentLang === 'en' ? 'Recommended list price: ' : 'Adviesprijs: ') + formatEur(model.rrp);
+    document.getElementById('modelRrpNote').textContent = currentLang === 'en' ? 'This is the recommended list price set by SmokeyKamado, not a previous selling price.' : 'Adviesprijs is de door SmokeyKamado vastgestelde aanbevolen lijstprijs, geen eerdere verkoopprijs.';
     const elDesc = document.getElementById("activeModelDesc");
     if (elDesc) elDesc.textContent = mDesc;
     const elAddPrice = document.getElementById("addBtnPrice");
@@ -934,6 +934,7 @@
     const list = document.getElementById('availableColors');
     list.replaceChildren();
     const qty = quantityFor(activeModelKey);
+    if (!inventory?.stock[activeModelKey]?.[currentColor.name]) currentColor = { id: null, name: 'Not selected', displayName: {nl:'Kies een kleur',en:'Choose a colour'} };
     if (inventory) {
       for (const [color, quantity] of Object.entries(inventory.stock[activeModelKey] || {})) {
         if (quantity <= 0) continue;
@@ -941,15 +942,23 @@
         const item = document.createElement('li');
         const swatch = document.createElement('span');
         swatch.className = 'availability-swatch'; swatch.style.backgroundColor = meta.hex;
-        item.append(swatch, document.createTextNode(meta[currentLang] + ' · Pantone ' + meta.pantone));
+        const button = document.createElement('button'); button.type = 'button';
+        button.className = 'colour-choice'; button.setAttribute('aria-pressed', String(currentColor.name === color));
+        button.append(swatch, document.createTextNode(meta[currentLang] + ' · Pantone ' + meta.pantone));
+        button.onclick = () => {
+          currentColor = { id: color.toLowerCase(), name: color, displayName: {nl:meta.nl,en:meta.en} };
+          if (initialColor === 'Not selected') initialColor = color;
+          renderInventory();
+        };
+        item.append(button);
         list.appendChild(item);
       }
     }
     document.getElementById('stockMessage').textContent = !inventory
       ? (en ? 'Checking availability…' : 'Beschikbaarheid controleren…')
-      : qty > 0 ? '' : (en ? 'This model is currently unavailable.' : 'Dit model is momenteel niet beschikbaar.');
-    document.getElementById('addModelToCartBtn').disabled = !inventory || qty <= 0;
-    document.getElementById('directCheckoutBtn').disabled = !inventory || qty <= 0;
+      : qty > 0 ? (currentColor.id ? (en ? 'Selected: ' : 'Gekozen: ') + currentColor.displayName[currentLang] : (en ? 'Choose a colour to continue.' : 'Kies een kleur om verder te gaan.')) : (en ? 'This model is currently unavailable.' : 'Dit model is momenteel niet beschikbaar.');
+    document.getElementById('addModelToCartBtn').disabled = !inventory || qty <= 0 || !currentColor.id;
+    document.getElementById('directCheckoutBtn').disabled = !inventory || qty <= 0 || !currentColor.id;
     const is18 = activeModelKey.startsWith('18_');
     document.getElementById('editionSwitch').hidden = !is18;
     document.getElementById('basicNotice').hidden = activeModelKey !== '18_basic';
@@ -972,7 +981,7 @@
       }
       const displayed = KAMADO_MODELS[isSmall ? (inventory && quantityFor('18_basic') <= 0 ? '18_premium' : '18_basic') : key];
       card.querySelector('.card-price-label').textContent = en ? 'Introductory price' : 'Introductieprijs';
-      card.querySelector('.card-rrp').textContent = (en ? 'RRP: ' : 'Adviesprijs: ') + formatEur(displayed.rrp);
+      card.querySelector('.card-rrp').textContent = (en ? 'Recommended list price: ' : 'Adviesprijs: ') + formatEur(displayed.rrp);
 
     });
   }
@@ -1038,7 +1047,7 @@
       cart.forEach(item => {
         const product = item.type === 'kamado' ? KAMADO_MODELS[item.modelKey || String(item.id || '').replace(/^kamado_/, '')] : ACCESSORIES.find(a => a.id === item.accessoryId);
         if (product) { item.image = product.image; if (item.type === "kamado") item.price = product.price; }
-        if (item.type === 'kamado') { item.colorId = null; item.colorName = 'Not selected'; item.colorDisplayName = currentLang === 'en' ? 'Colour not selected' : 'Kleur niet gekozen'; }
+        if (item.type === 'kamado') { const meta = inventory?.colors[item.colorName]; if (meta) item.colorDisplayName = meta[currentLang]; }
         if (typeof item.name === "string") item.name = item.name.replace(/CraftKamado|KundiKamado/g, "SmokeyKamado");
         if (typeof item.colorDisplayName === "string") item.colorDisplayName = item.colorDisplayName.replace("Craft ", "Smokey ");
       });
@@ -1049,7 +1058,7 @@
 
   function addModelToCart() {
     const model = KAMADO_MODELS[activeModelKey];
-    if (!model || !inventory || quantityFor(activeModelKey) <= 0) return;
+    if (!model || !inventory || quantityFor(activeModelKey) <= 0 || !currentColor.id) return;
 
     const mName = model.name[currentLang] || model.name.nl;
     const cDisp = currentColor.displayName[currentLang] || currentColor.displayName.nl;
@@ -1287,7 +1296,7 @@
       paymentMethod: paymentOpt,
       source: trafficSource,
       landingPage,
-      initialColor: "Not selected",
+      initialColor,
       finalColor: kamadoItem.colorName || currentColor.name,
       modelName: kamadoItem.name || `${activeModelKey}″ SmokeyKamado`,
       sizeInch: kamadoItem.sizeInch || "23",

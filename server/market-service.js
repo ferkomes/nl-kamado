@@ -233,6 +233,13 @@ async function recordPurchaseIntent(env, intentData) {
       if (Object.values(available.stock[legacyModel] || {}).reduce((sum, qty) => sum + qty, 0) < item.qty) throw new Error('Dit model is niet meer beschikbaar.');
     }
   }
+  for (const item of items.filter(i => i.type === 'kamado')) {
+    if (item.colorName && item.colorName !== 'Not selected') {
+      const key = item.modelKey || String(item.id || '').replace(/^kamado_/, '');
+      const available = await getInventory(db);
+      if ((available.stock[key]?.[item.colorName] || 0) < item.qty) throw new Error('Deze kleur is niet beschikbaar. Kies een andere kleur.');
+    }
+  }
   const accessories = items.filter(i => i.type === 'accessory');
   // Same session, customer and basket represent the same intent, including retries.
   const fingerprint = JSON.stringify([intentData.sessionId, cust.email.trim().toLowerCase(), items]);

@@ -795,7 +795,7 @@ test('introductory prices and RRP agree across all product pages and override st
     for(const lang of ['nl','en']) {
       const html=await (await worker.fetch(new Request('https://smokeykamado.nl/kamados/'+key.replace('_','-')+'?lang='+lang),env)).text();
       assert.match(html,new RegExp('id="activeModelPrice">€'+price));
-      assert.match(html,new RegExp('id="modelRrp">(?:RRP|Adviesprijs): €'+rrp));
+      assert.match(html,new RegExp('id="modelRrp">(?:Recommended list price|Adviesprijs): €'+rrp));
       assert.match(html,/id="modelPriceLabel">(?:Introductieprijs|Introductory price)/);
     }
     const response=await worker.fetch(new Request('https://smokeykamado.nl/api/market-test/purchase-intent',{method:'POST',body:JSON.stringify({sessionId:'intro-'+key,customer:{email:'test@example.nl'},items:[{id:'kamado_'+key,modelKey:key,type:'kamado',name:key,sizeInch:key.slice(0,2),price:1,qty:1}]})}),env);
