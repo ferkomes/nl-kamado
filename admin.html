@@ -391,6 +391,12 @@
     <section class="card" style="margin-top:2rem;padding:1.5rem;">
       <h2>Inventory — sizes, editions &amp; colours</h2>
       <p>Set a quantity to 0 to hide that colour. A sold-out edition is unavailable to submit. Purchase intents do not reduce stock.</p>
+      <section class="panel" style="padding:20px;margin-bottom:24px;">
+        <h2>YouTube videos</h2><p>Add up to 5 YouTube links per location, one per line. Their order here is their display order. Leave the list empty and save to remove all videos. Upload videos to YouTube first and enable embedding; public or unlisted videos work.</p>
+        <label for="mediaPlacement">Show videos on</label><select id="mediaPlacement" style="display:block;max-width:100%;margin:12px 0"></select>
+        <label for="mediaUrls">YouTube links</label><textarea id="mediaUrls" rows="6" style="display:block;width:100%;margin:12px 0" placeholder="https://www.youtube.com/watch?v=..."></textarea>
+        <button id="saveMediaBtn" type="button" class="btn" disabled>Save videos</button><p id="mediaStatus" role="status"></p>
+      </section>
       <p id="inventoryStatus" role="status"></p>
       <div style="overflow-x:auto;"><table class="data-table" id="inventoryTable"><thead><tr><th>Model</th><th>Colour / Pantone</th><th>Quantity</th><th></th></tr></thead><tbody></tbody></table></div>
     </section>

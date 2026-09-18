@@ -7,7 +7,8 @@ const inventorySeed = JSON.parse(fs.readFileSync(path.join(__dirname, 'inventory
 const inventoryCode = fs.readFileSync(path.join(__dirname, 'server/inventory-service.js'), 'utf8');
 const styleCss = fs.readFileSync(path.join(__dirname, 'style.css'), 'utf8');
 const shippingCode = fs.readFileSync(path.join(__dirname, 'shipping-policy.js'), 'utf8');
-const appJs = fs.readFileSync(path.join(__dirname, 'app.js'), 'utf8').replace('/* SHIPPING_POLICY */', () => shippingCode);
+const appJs = fs.readFileSync(path.join(__dirname, 'app.js'), 'utf8').replace('/* SHIPPING_POLICY */', () => shippingCode).replace('/* MEDIA_GALLERY */', () => fs.readFileSync(path.join(__dirname, 'gallery.js'), 'utf8'));
+const mediaCode = fs.readFileSync(path.join(__dirname, 'server/media-service.js'), 'utf8');
 const supportCode = fs.readFileSync(path.join(__dirname, 'server/support-pages.js'), 'utf8');
 const adminHtml = fs.readFileSync(path.join(__dirname, 'admin.html'), 'utf8');
 const brandLogo = fs.readFileSync(path.join(__dirname, 'assets/smokey-logo.svg'), 'utf8');
@@ -53,6 +54,7 @@ const HTML_CONTENT = ${JSON.stringify(embeddedHtml)};
 const INVENTORY_SEED = ${JSON.stringify(inventorySeed)};
 ${shippingCode}
 ${supportCode}
+${mediaCode}
 ${inventoryCode}
 const PRODUCT_PAGES = ${JSON.stringify(productPages)};
 ${storefrontPagesCode}
@@ -96,7 +98,19 @@ export default {
     const withSiteUrl = content => content.replaceAll('https://smokeykamado.nl', siteUrl);
     // Personal lead data and admin credentials must not be cached.
     const privateHeaders = { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' };
+    const storefrontHeaders = { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' };
+    if (url.hostname.endsWith('.workers.dev') || new URL(siteUrl).hostname.endsWith('.workers.dev') || url.hostname !== new URL(siteUrl).hostname) storefrontHeaders['X-Robots-Tag'] = 'noindex, follow';
 
+
+    if (pathname === '/api/media') {
+      try {
+        if (method === 'GET') return Response.json(await readMedia(env.DB), { headers: privateHeaders });
+        if (method !== 'POST') return new Response('Method not allowed', { status: 405 });
+        if (!authenticateAdmin(request, env)) return Response.json({ error: 'Unauthorized' }, { status: 401, headers: privateHeaders });
+        const result = await saveMedia(env.DB, await request.json());
+        return Response.json(result, { status: result.conflict ? 409 : 200, headers: privateHeaders });
+      } catch (error) { return Response.json({ error: error.message }, { status: method === 'GET' ? 503 : 400, headers: privateHeaders }); }
+    }
 
     if (pathname === '/api/inventory') {
       try {
@@ -139,7 +153,7 @@ export default {
 
     // SEO: sitemap.xml
     if (pathname === '/sitemap.xml') {
-      const nowIso = new Date().toISOString().split('T')[0];
+
       const sitemapXml = [
         '<?xml version="1.0" encoding="UTF-8"?>',
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
@@ -148,19 +162,16 @@ export default {
         '    <xhtml:link rel="alternate" hreflang="nl" href="https://smokeykamado.nl/?lang=nl"/>',
         '    <xhtml:link rel="alternate" hreflang="en" href="https://smokeykamado.nl/?lang=en"/>',
         '    <xhtml:link rel="alternate" hreflang="x-default" href="https://smokeykamado.nl/"/>',
-        '    <lastmod>' + nowIso + '</lastmod>',
         '    <changefreq>daily</changefreq>',
         '    <priority>1.0</priority>',
         '  </url>',
         '  <url>',
         '    <loc>https://smokeykamado.nl/?lang=nl</loc>',
-        '    <lastmod>' + nowIso + '</lastmod>',
         '    <changefreq>daily</changefreq>',
         '    <priority>0.9</priority>',
         '  </url>',
         '  <url>',
         '    <loc>https://smokeykamado.nl/?lang=en</loc>',
-        '    <lastmod>' + nowIso + '</lastmod>',
         '    <changefreq>daily</changefreq>',
         '    <priority>0.8</priority>',
         '  </url>',
@@ -178,24 +189,20 @@ export default {
     const productPath = pathname.replace(/\\/$/, '');
     if (Object.prototype.hasOwnProperty.call(PRODUCT_PAGES, productPath)) {
       return new Response(withSiteUrl(productPageHtml(HTML_CONTENT, PRODUCT_PAGES[productPath], productPath)), {
-        headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' }
+        headers: storefrontHeaders
       });
     }
 
     // 1. Static Storefront HTML
     if (pathname === '/' || pathname === '/index.html') {
-      return new Response(withSiteUrl(HTML_CONTENT), {
-        headers: {
-          'Content-Type': 'text/html; charset=utf-8',
-          'Cache-Control': 'no-cache'
-        }
-      });
+      return new Response(withSiteUrl(HTML_CONTENT), { headers: storefrontHeaders });
     }
 
     // 2. Admin Dashboard & Admin JS
     if (pathname === '/admin/market-test' || pathname === '/admin' || pathname === '/admin/') {
       return new Response(ADMIN_HTML_CONTENT, {
         headers: {
+          'X-Robots-Tag': 'noindex, nofollow',
           'Content-Type': 'text/html; charset=utf-8',
           'Cache-Control': 'no-cache'
         }

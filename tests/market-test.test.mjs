@@ -700,3 +700,42 @@ test('delivery rates are server-calculated for 18/27 and accessories, included i
   }
   assert.equal(db._sqlite.prepare("SELECT total_amount_eur FROM purchase_intents WHERE id='legacy'").get().total_amount_eur,42);
 });
+
+test('media configuration authenticates writes, validates URLs, persists ordered placements and detects conflicts', async () => {
+  const worker = (await import('../worker.js')).default;
+  const env = { DB: createMockD1(), ADMIN_PASSWORD: 'media-test-secret' };
+  const post = (data, token = 'media-test-secret') => worker.fetch(new Request('https://example.test/api/media', {method:'POST',headers:{Authorization:'Bearer '+token},body:JSON.stringify(data)}),env);
+  const read = async () => (await worker.fetch(new Request('https://example.test/api/media'),env)).json();
+  assert.deepEqual((await read()).placements,{});
+  const data = {placement:'/kamados/27',revision:0,urls:['https://youtu.be/abcdefghijk','https://www.youtube.com/shorts/12345678901']};
+  assert.equal((await post(data,'wrong')).status,401);
+  for (const url of ['javascript:alert(1)','https://youtube.com.evil.test/watch?v=abcdefghijk','https://example.com/abcdefghijk','https://youtube.com/watch?v=bad','https://user@youtube.com/watch?v=abcdefghijk']) {
+    assert.equal((await post({...data,urls:[url]})).status,400);
+  }
+  assert.equal((await post({...data,placement:'/unknown'})).status,400);
+  assert.equal((await post({...data,urls:Array(6).fill(data.urls[0])})).status,400);
+  assert.equal((await post(data)).status,200);
+  assert.deepEqual((await read()).placements['/kamados/27'].videos,['abcdefghijk','12345678901']);
+  assert.equal((await post(data)).status,409);
+  assert.equal((await post({placement:'/',revision:0,urls:[data.urls[0]]})).status,200);
+  assert.equal((await post({...data,revision:1,urls:[]})).status,200);
+  const result = await read();
+  assert.deepEqual(result.placements['/kamados/27'].videos,[]);
+  assert.equal(result.placements['/'].videos.length,1);
+  assert.equal(Object.keys(result.locations).length,12);
+});
+
+test('preview domain stays noindex until permanent-domain canonical configuration is ready', async () => {
+  const worker = (await import('../worker.js')).default;
+  for (const path of ['/', '/kamados/27']) {
+    const preview = await worker.fetch(new Request('https://nl-kamado.ferkomes.workers.dev'+path),{SITE_URL:'https://smokeykamado.nl'});
+    assert.match(preview.headers.get('X-Robots-Tag'),/noindex/);
+    const pending = await worker.fetch(new Request('https://smokeykamado.nl'+path),{SITE_URL:'https://nl-kamado.ferkomes.workers.dev'});
+    assert.match(pending.headers.get('X-Robots-Tag'),/noindex/);
+    const ready = await worker.fetch(new Request('https://smokeykamado.nl'+path),{SITE_URL:'https://smokeykamado.nl'});
+    assert.equal(ready.headers.get('X-Robots-Tag'),null);
+  }
+  const sitemap = await (await worker.fetch(new Request('https://smokeykamado.nl/sitemap.xml'),{SITE_URL:'https://smokeykamado.nl'})).text();
+  assert.match(sitemap,/https:\/\/smokeykamado.nl\/kamados\/27/);
+  assert.doesNotMatch(sitemap,/<lastmod>|workers.dev/);
+});

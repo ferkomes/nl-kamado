@@ -70,3 +70,5 @@ CREATE TABLE IF NOT EXISTS site_settings (
   key TEXT PRIMARY KEY,
   value TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS product_media (placement TEXT PRIMARY KEY, videos_json TEXT NOT NULL, revision INTEGER NOT NULL DEFAULT 1);

@@ -77,9 +77,47 @@
       hideAuthOverlay();
       renderDashboard(data);
       await loadInventory();
+      if (!mediaLoaded) await loadMedia();
     } catch (err) {
       console.error("Error loading dashboard:", err);
     }
+  }
+
+  let mediaLoaded = false;
+  let mediaData = { placements: {} };
+  async function loadMedia() {
+    const status = document.getElementById('mediaStatus');
+    try {
+      const response = await fetch('/api/media', { cache: 'no-store' });
+      if (!response.ok) throw new Error('Could not load videos. Refresh to retry.');
+      mediaData = await response.json();
+      const select = document.getElementById('mediaPlacement');
+      const previous = select.value;
+      select.replaceChildren();
+      for (const [path, name] of Object.entries(mediaData.locations)) {
+        const option = document.createElement('option'); option.value = path; option.textContent = name; select.appendChild(option);
+      }
+      if (previous) select.value = previous;
+      const fill = () => {
+        document.getElementById('mediaUrls').value = (mediaData.placements[select.value]?.videos || []).map(id => 'https://www.youtube.com/watch?v=' + id).join('\n');
+        status.textContent = '';
+      };
+      select.onchange = fill; fill();
+      const button = document.getElementById('saveMediaBtn'); button.disabled = false;
+      button.onclick = async () => {
+        button.disabled = true; select.disabled = true;
+        const urls = document.getElementById('mediaUrls').value.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+        try {
+          const response = await fetch('/api/media', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + adminToken }, body: JSON.stringify({ placement: select.value, urls, revision: mediaData.placements[select.value]?.revision || 0 }) });
+          const data = await response.json();
+          if (response.status === 409) throw new Error('Changed in another tab. Copy your links and refresh before saving.');
+          if (!response.ok) throw new Error(data.error || 'Save failed');
+          await loadMedia(); status.textContent = 'Saved. Videos appear on the selected page; empty lists leave no space.';
+        } catch (error) { status.textContent = error.message; }
+        finally { button.disabled = false; select.disabled = false; }
+      };
+      mediaLoaded = true;
+    } catch (error) { status.textContent = error.message; }
   }
 
   async function loadInventory() {

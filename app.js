@@ -11,6 +11,7 @@
 
 (function() {
   /* SHIPPING_POLICY */
+  /* MEDIA_GALLERY */
   "use strict";
 
   // --- CATALOG DATA ---
@@ -829,6 +830,7 @@
     updateModelConfigurator();
     renderCart();
     renderAccessoryDetail();
+    if (!detailModelKey && !detailAccessory && publishedMedia['/']?.videos?.length) renderMediaGallery('homeVideoImage', 'homeVideoThumbs', [], '/', 'SmokeyKamado');
     if (detailModelKey) {
       document.getElementById('modelsSectionTitle').textContent = KAMADO_MODELS[activeModelKey].name[currentLang];
       document.title = KAMADO_MODELS[activeModelKey].name[currentLang] + ' | SmokeyKamado';
@@ -845,22 +847,7 @@
     document.getElementById('detailAccessoryDesc').textContent = acc.desc[currentLang];
     document.getElementById('detailAccessoryImage').src = acc.image;
     document.getElementById('detailAccessoryImage').alt = acc.name[currentLang];
-    const gallery = document.getElementById('detailAccessoryThumbs');
-    gallery.replaceChildren();
-    (acc.thumbs || [acc.image]).forEach((src, index) => {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'thumb-item' + (index === 0 ? ' active' : '');
-      button.setAttribute('aria-label', (en ? 'Product photo ' : 'Productfoto ') + (index + 1));
-      const image = document.createElement('img');
-      image.src = src; image.alt = acc.name[currentLang] + ' ' + (index + 1); image.loading = 'lazy';
-      button.appendChild(image);
-      button.addEventListener('click', () => {
-        document.getElementById('detailAccessoryImage').src = src;
-        gallery.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === button));
-      });
-      gallery.appendChild(button);
-    });
+    renderMediaGallery('detailAccessoryImage', 'detailAccessoryThumbs', acc.thumbs || [acc.image], '/accessories/' + acc.id, acc.name[currentLang]);
     document.getElementById('detailSizeField').hidden = !acc.isSizeDependent;
     document.getElementById('detailAccessoryFit').textContent = acc.isSizeDependent
       ? (en ? 'Selected size: ' : 'Gekozen maat: ') + size + '″'
@@ -905,21 +892,7 @@
     const elBadge = document.getElementById("activeModelBadge");
     if (elBadge) elBadge.textContent = mBadge;
 
-    const thumbsContainer = document.getElementById("galleryThumbs");
-    if (thumbsContainer) {
-      thumbsContainer.innerHTML = "";
-      model.thumbs.forEach((src, idx) => {
-        const thumb = document.createElement("div");
-        thumb.className = `thumb-item ${idx === 0 ? "active" : ""}`;
-        thumb.innerHTML = `<img src="${src}" alt="Thumbnail ${idx + 1}">`;
-        thumb.onclick = () => {
-          document.querySelectorAll(".thumb-item").forEach(t => t.classList.remove("active"));
-          thumb.classList.add("active");
-          if (activeImg) activeImg.src = src;
-        };
-        thumbsContainer.appendChild(thumb);
-      });
-    }
+    renderMediaGallery('activeModelImg', 'galleryThumbs', model.thumbs, '/kamados/' + activeModelKey.replace('_', '-'), mName);
 
     const accDescEl = document.getElementById("accSectionDesc");
     if (accDescEl && TRANSLATIONS[currentLang]) {
@@ -1452,6 +1425,7 @@
     // Set initial language & render
     setLanguage(currentLang);
     refreshInventory();
+    loadPublishedMedia();
     window.addEventListener('pageshow', refreshInventory);
     setInterval(() => { if (!document.hidden) refreshInventory(); }, 60000);
     document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshInventory(); });

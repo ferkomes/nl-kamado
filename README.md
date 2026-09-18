@@ -258,3 +258,23 @@ Ez a bejövő levelek továbbítása; nem változtatja meg a meglévő Mailjet k
 Ez önmagában nem állít be Gmailből `info@smokeykamado.nl` feladóval küldést: a Gmail válasz alapból a Gmail-címedről megy. A saját domaines feladóhoz külön hitelesített SMTP/szolgáltató és Gmail „Send mail as” beállítás kell; most a már működő Mailjet küldést megtartjuk.
 
 Hivatalos útmutató: [Cloudflare email routing szabályok és catch-all](https://developers.cloudflare.com/email-service/configuration/email-routing-addresses/).
+
+## YouTube videók az adminból
+
+Az `/admin` oldalon a **YouTube videos** részben válaszd ki a kezdőlapot vagy a konkrét kamado/kiegészítő oldalát. Soronként egy YouTube-linket adhatsz meg, legfeljebb ötöt. A sorok sorrendje a megjelenési sorrend. A **Save videos** menti D1-be; nem kell új build. Üres listával mentve minden videót eltávolítasz az adott helyről. Másik adminablak időközbeni módosítását a mentés nem írja felül.
+
+A videót előbb YouTube-ra töltsd fel (nyilvános vagy nem listázott, beágyazás engedélyezve). Ez YouTube-linkkezelés, nem helyi MP4-fájlfeltöltés. A termékgalériában a videók a fotók után jelennek meg. Videó nélkül nincs videóhelykitöltő; a kezdőlapi videós rész teljesen rejtett. Egyetlen fotónál nincs felesleges lapozó. Több médiánál nyilak, számláló, billentyűzetes bal/jobb navigáció és mobilos lapozás működik. A YouTube-lejátszó csak a lejátszás gomb megnyomására töltődik be; a média elváltásakor leáll.
+
+## Publikálás és Google Search Console
+
+Van automatikus **`/sitemap.xml`** és **`/robots.txt`**. A sitemap tartalmazza a főoldalt és mind az 5 kamado-, illetve 6 kiegészítőoldalt. Az admin/API nincs benne. A support-oldalak jelenleg `noindex` állapotú előzetes tájékoztatók, ezért nincsenek a sitemapben. Nem adunk minden kérésnél hamis frissítési dátumot.
+
+Érdemes a valós domainen publikálni az őszintén érdeklődésmérésként megjelölt kínálatot, de Google-indexelést csak a végleges domain beállítása után kérj:
+
+1. A `smokeykamado.nl` Cloudflare-státusza legyen Active; rendeld a domaint az `nl-kamado` Workerhez, és ellenőrizd a HTTPS elérést.
+2. A `wrangler.toml` `SITE_URL` értékét állítsd `https://smokeykamado.nl` címre, majd build/deploy. Ez frissíti a canonical URL-eket, a sitemap linkjeit és az email dashboard-linkjét is. Addig a tesztcím marad működőképes.
+3. Ellenőrizd a kezdőlap és egy termékoldal canonical címét, a `/sitemap.xml` URL-jeit, valamint hogy a végleges oldalon nincs `X-Robots-Tag: noindex` fejléc. A Workers tesztdomain mindig `noindex`; a végleges domain is az marad, amíg a konfiguráció tesztcímre mutat. Az admin mindig `noindex`.
+4. Search Console → **Add property → Domain → smokeykamado.nl**. A Google által megadott TXT rekordot add hozzá a Cloudflare DNS-ben, majd Verify.
+5. **Sitemaps** → küldd be a `https://smokeykamado.nl/sitemap.xml` címet. **URL Inspection** alatt a főoldalra kérhetsz indexelést; a többi URL-t a sitemap alapján fedezheti fel Google. A beküldés nem garantál indexelést vagy rangsorolást.
+
+Forrás: [Google sitemap útmutató](https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap), [újrafeltérképezés kérése](https://developers.google.com/search/docs/crawling-indexing/ask-google-to-recrawl).
