@@ -1,7 +1,7 @@
 /**
- * CraftKamado Netherlands - Market Demand Storefront Logic
+ * SmokeyKamado Netherlands - Market Demand Storefront Logic
  * - Full Dual-Language Support: Dutch (NL) & English (EN)
- * - Removed test indicators for 100% authentic e-commerce perception
+ * - Non-binding interest registration with indicative shipping costs
  * - Funnel telemetry: visitor -> add_to_cart -> checkout -> purchase_intent
  * - Model selection: 18 Basic, 18 Premium, 21, 23, 27
  * - Color selection: Black, Burgundy, Blue, Green, Orange, Beige, Yellow
@@ -10,13 +10,14 @@
  */
 
 (function() {
+  /* SHIPPING_POLICY */
   "use strict";
 
   // --- CATALOG DATA ---
   const KAMADO_MODELS = {
     "18_basic": {
       key: "18_basic",
-      name: { nl: "CraftKamado 18″ Basic", en: "CraftKamado 18″ Basic" },
+      name: { nl: "SmokeyKamado 18″ Basic", en: "SmokeyKamado 18″ Basic" },
       sizeInch: "18",
       modelCode: "CK-18BAS",
       badge: { nl: "Compact & Scherp Geprijsd", en: "Compact & Best Value" },
@@ -30,17 +31,12 @@
         nl: "Compacte keramische kamado barbecue met uitstekende warmte-isolatie. Ideaal voor balkons, stadstuinen of kleine gezinnen.",
         en: "Compact ceramic kamado BBQ with outstanding thermal insulation. Ideal for balconies, urban gardens or small families."
       },
-      image: "/images/kamado_18_front.jpg",
-      thumbs: [
-        "/images/kamado_18_front.jpg",
-        "/images/kamado_divide_open.jpg",
-        "/images/kamado_detail_vent.jpg",
-        "/images/kamado_bbq_lifestyle.jpg"
-      ]
+      image: "/assets/auplex/18-2.jpg",
+      thumbs: ["/assets/auplex/18-2.jpg", "/assets/auplex/18-1.jpg", "/assets/auplex/18-3.jpg", "/assets/auplex/18-4.jpg"]
     },
     "18_premium": {
       key: "18_premium",
-      name: { nl: "CraftKamado 18″ Premium", en: "CraftKamado 18″ Premium" },
+      name: { nl: "SmokeyKamado 18″ Premium", en: "SmokeyKamado 18″ Premium" },
       sizeInch: "18",
       modelCode: "CK-18PREM",
       badge: { nl: "Compact & Familie", en: "Compact & Family" },
@@ -51,21 +47,15 @@
       people: { nl: "2–4 personen", en: "2–4 people" },
       weight: "59.5 kg",
       desc: {
-        nl: "Compacte Mullite keramische kamado van topklasse. Compleet All-Inclusive pakket met Air Hinge veerscharnier, multi-level Divide & Conquer kooksysteem, gietijzeren rooster, handige aslade, rookhout-inlaat en weersbestendige beschermhoes.",
-        en: "High-end compact Mullite ceramic kamado. Complete All-Inclusive package with Air Hinge spring counter-balance, Divide & Conquer cooking system, cast iron grate, slide-out ash drawer, wood chip feeder and heavy weather cover."
+        nl: "Compleet Premium pakket met Strong Hinge, zwarte HDPE zijtafels, Divide & Conquer, RVS aslade en wood-chip feeder, zwarte banden met RVS bevestigingen, onderstel met bodemschap en waterdichte hoes.",
+        en: "Complete Premium package with Strong Hinge, black HDPE side tables, Divide & Conquer, stainless-steel ash drawer and wood-chip feeder, black bands with stainless hardware, cart with bottom shelf and waterproof cover."
       },
-      image: "/images/kamado_18_front.jpg",
-      thumbs: [
-        "/images/kamado_18_front.jpg",
-        "/images/kamado_divide_open.jpg",
-        "/images/kamado_detail_vent.jpg",
-        "/images/kamado_detail_hinge.jpg",
-        "/images/kamado_bbq_lifestyle.jpg"
-      ]
+      image: "/assets/auplex/18-2.jpg",
+      thumbs: ["/assets/auplex/18-2.jpg", "/assets/auplex/18-1.jpg", "/assets/auplex/18-3.jpg", "/assets/auplex/18-4.jpg"]
     },
     "21": {
       key: "21",
-      name: { nl: "CraftKamado 21″ Veelzijdig", en: "CraftKamado 21″ Versatile" },
+      name: { nl: "SmokeyKamado 21″ Veelzijdig", en: "SmokeyKamado 21″ Versatile" },
       sizeInch: "21",
       modelCode: "CK-21ALL",
       badge: { nl: "Veelzijdig & Familie+", en: "Versatile & Family+" },
@@ -76,21 +66,15 @@
       people: { nl: "4–6 personen", en: "4–6 people" },
       weight: "75.0 kg",
       desc: {
-        nl: "Het ideale allround formaat! Royaal kookoppervlak voor familie en vrienden, inclusief compleet multi-level kooksysteem, gietijzeren halve maan roosters en luxe afwerking.",
-        en: "The quintessential all-round size! Generous cooking surface for family and friends, featuring the full multi-level cooking rack, half-moon cast iron grate, and luxury finish."
+        nl: "Compleet Premium pakket met Air Hinge, zwarte HDPE zijtafels, Divide & Conquer, RVS aslade en wood-chip feeder, zwarte banden met RVS bevestigingen, onderstel met bodemschap en waterdichte hoes.",
+        en: "Complete Premium package with Air Hinge, black HDPE side tables, Divide & Conquer, stainless-steel ash drawer and wood-chip feeder, black bands with stainless hardware, cart with bottom shelf and waterproof cover."
       },
-      image: "/images/kamado_21_front.jpg",
-      thumbs: [
-        "/images/kamado_21_front.jpg",
-        "/images/kamado_divide_open.jpg",
-        "/images/kamado_detail_vent.jpg",
-        "/images/kamado_detail_hinge.jpg",
-        "/images/kamado_bbq_lifestyle.jpg"
-      ]
+      image: "/assets/auplex/21-1.jpg",
+      thumbs: ["/assets/auplex/21-1.jpg"]
     },
     "23": {
       key: "23",
-      name: { nl: "CraftKamado 23″ Bestseller", en: "CraftKamado 23″ Bestseller" },
+      name: { nl: "SmokeyKamado 23″ Bestseller", en: "SmokeyKamado 23″ Bestseller" },
       sizeInch: "23",
       modelCode: "CK-23BEST",
       badge: { nl: "🔥 Bestseller / Meest Gekozen", en: "🔥 Bestseller / Most Popular" },
@@ -101,21 +85,15 @@
       people: { nl: "4–8 personen (Ideaal)", en: "4–8 people (Optimal)" },
       weight: "89.0 kg",
       desc: {
-        nl: "De populairste kamado maat van Nederland! Uitstekende capaciteit voor meerdere hele kippen, ribs, briskets of pizza tegelijk. Volledig All-Inclusive geleverd met onderstel en zijtafels.",
-        en: "The most popular kamado size in the Netherlands! Superb capacity for multiple whole chickens, racks of ribs, briskets or stone-baked pizza at once. Delivered fully All-Inclusive with rolling cart and side tables."
+        nl: "Compleet Premium pakket met Air Hinge, zwarte HDPE zijtafels, Divide & Conquer, RVS aslade en wood-chip feeder, zwarte banden met RVS bevestigingen, onderstel met bodemschap en waterdichte hoes.",
+        en: "Complete Premium package with Air Hinge, black HDPE side tables, Divide & Conquer, stainless-steel ash drawer and wood-chip feeder, black bands with stainless hardware, cart with bottom shelf and waterproof cover."
       },
-      image: "/images/kamado_23_front.jpg",
-      thumbs: [
-        "/images/kamado_23_front.jpg",
-        "/images/kamado_divide_open.jpg",
-        "/images/kamado_detail_vent.jpg",
-        "/images/kamado_detail_hinge.jpg",
-        "/images/kamado_bbq_lifestyle.jpg"
-      ]
+      image: "/assets/auplex/23-2.jpg",
+      thumbs: ["/assets/auplex/23-2.jpg", "/assets/auplex/23-1.jpg", "/assets/auplex/23-3.jpg", "/assets/auplex/23-4.jpg"]
     },
     "27": {
       key: "27",
-      name: { nl: "CraftKamado 27″ HoReCa Reus", en: "CraftKamado 27″ Heavy Duty Giant" },
+      name: { nl: "SmokeyKamado 27″ HoReCa Reus", en: "SmokeyKamado 27″ Heavy Duty Giant" },
       sizeInch: "27",
       modelCode: "CK-27PRO",
       badge: { nl: "Reus / HoReCa & Heavy Duty", en: "Giant / Commercial & Heavy Duty" },
@@ -126,17 +104,11 @@
       people: { nl: "6–12+ personen", en: "6–12+ people" },
       weight: "94.6 kg",
       desc: {
-        nl: "Enorme capaciteit voor grote gezelschappen, feesten en horecagebruik. 57.5 cm rvs kookrooster, geavanceerde dubbele ventilatieschuif en gewichtsloze dekselopening.",
-        en: "Gigantic capacity for large gatherings, catering and heavy-duty commercial use. 57.5 cm stainless steel grate, dual precision air vent, and weightless lid balance."
+        nl: "Compleet Premium pakket met Air Hinge, zwarte HDPE zijtafels, Divide & Conquer, RVS aslade en wood-chip feeder, zwarte banden met RVS bevestigingen, onderstel met bodemschap en waterdichte hoes.",
+        en: "Complete Premium package with Air Hinge, black HDPE side tables, Divide & Conquer, stainless-steel ash drawer and wood-chip feeder, black bands with stainless hardware, cart with bottom shelf and waterproof cover."
       },
-      image: "/images/kamado_27_front.jpg",
-      thumbs: [
-        "/images/kamado_27_front.jpg",
-        "/images/kamado_divide_open.jpg",
-        "/images/kamado_detail_vent.jpg",
-        "/images/kamado_detail_hinge.jpg",
-        "/images/kamado_bbq_lifestyle.jpg"
-      ]
+      image: "/assets/auplex/27-2.jpg",
+      thumbs: ["/assets/auplex/27-2.jpg", "/assets/auplex/27-1.jpg", "/assets/auplex/27-3.jpg"]
     }
   };
 
@@ -150,7 +122,8 @@
         nl: "Zware kwaliteit waterdichte en UV-bestendige hoes, precies op maat voor het gekozen formaat.",
         en: "Heavy-duty waterproof and UV-resistant cover, tailor-made for your selected kamado size."
       },
-      image: "/images/cover.jpg"
+      image: "/assets/auplex/cover-2.jpg",
+      thumbs: ["/assets/auplex/cover-2.jpg", "/assets/auplex/cover-1.jpg", "/assets/auplex/cover-3.jpg"]
     },
     {
       id: "rotisserie",
@@ -161,7 +134,8 @@
         nl: "Krachtige 230V/batterij motor met RVS spies voor ultiem sappig gevogelte en braadstukken.",
         en: "Powerful 230V/battery motor with food-grade stainless spit rod for extraordinarily juicy poultry and roasts."
       },
-      image: "/images/rotisserie.jpg"
+      image: "/assets/auplex/rotisserie-1.jpg",
+      thumbs: ["/assets/auplex/rotisserie-1.jpg", "/assets/auplex/rotisserie-2.jpg"]
     },
     {
       id: "cast-iron-halfmoon",
@@ -172,7 +146,8 @@
         nl: "Tweezijdig bruikbaar: geribbeld voor grillstrepen, vlakke plancha voor burgers en groenten.",
         en: "Reversible: ribbed side for authentic grill marks, flat plancha side for burgers, seafood and veggies."
       },
-      image: "/images/cast-iron.jpg"
+      image: "/assets/auplex/cast-iron-1.jpg",
+      thumbs: ["/assets/auplex/cast-iron-1.jpg"]
     },
     {
       id: "pizza-stone",
@@ -183,7 +158,8 @@
         nl: "Bestand tegen 400°C voor de perfecte knapperige Napolitaanse pizzabodem.",
         en: "Withstands up to 400°C to bake crispy, authentic Italian stone-oven pizzas."
       },
-      image: "/images/pizza.jpg"
+      image: "/assets/auplex/pizza-2.jpg",
+      thumbs: ["/assets/auplex/pizza-2.jpg", "/assets/auplex/pizza-1.jpg"]
     },
     {
       id: "electric-starter",
@@ -194,7 +170,8 @@
         nl: "Binnen 60-90 seconden gloeiende houtskool met hete lucht, zonder chemicaliën.",
         en: "Glowing charcoal in 60-90 seconds using clean superheated airflow without harmful lighter fluid."
       },
-      image: "/images/heat.jpg"
+      image: "/assets/auplex/starter-1.jpg",
+      thumbs: ["/assets/auplex/starter-1.jpg", "/assets/auplex/starter-2.jpg", "/assets/auplex/starter-3.jpg"]
     },
     {
       id: "bbq-gloves",
@@ -205,7 +182,8 @@
         nl: "Antislip siliconen voor het veilig beetpakken van hete grillroosters en pannen.",
         en: "Non-slip silicone heat protection for safely handling hot grates and cast iron cookware."
       },
-      image: "/images/gloves.jpg"
+      image: "/assets/auplex/gloves-2.jpg",
+      thumbs: ["/assets/auplex/gloves-2.jpg", "/assets/auplex/gloves-1.jpg"]
     }
   ];
 
@@ -214,7 +192,7 @@
     { id: "burgundy", name: "Burgundy", hex: "#781d2e", displayName: { nl: "Burgundy (Bordeaux Rood)", en: "Burgundy (Wine Red)" } },
     { id: "blue", name: "Blue", hex: "#1b3f75", displayName: { nl: "Blue (Marine Blauw)", en: "Blue (Navy Blue)" } },
     { id: "green", name: "Green", hex: "#235338", displayName: { nl: "Green (Bosgroen)", en: "Green (Forest Green)" } },
-    { id: "orange", name: "Orange", hex: "#df5417", displayName: { nl: "Orange (Craft Oranje)", en: "Orange (Craft Orange)" } },
+    { id: "orange", name: "Orange", hex: "#df5417", displayName: { nl: "Orange (Smokey Oranje)", en: "Orange (Smokey Orange)" } },
     { id: "beige", name: "Beige", hex: "#d6cbb6", displayName: { nl: "Beige (Zand Beige)", en: "Beige (Sand Beige)" } },
     { id: "yellow", name: "Yellow", hex: "#dca326", displayName: { nl: "Yellow (Warm Okergeel)", en: "Yellow (Warm Ochre)" } }
   ];
@@ -222,36 +200,36 @@
   // --- I18N DICTIONARY ---
   const TRANSLATIONS = {
     nl: {
-      topBanner: "🇳🇱 <strong>Gratis verzekerde palletlevering</strong> in heel Nederland • Tijdelijke voorjaarsactie: All-Inclusive pakket inbegrepen!",
-      navModellen: "Kamado Modellen",
-      navAllInclusive: "All-Inclusive Uitrusting",
+      topBanner: "🇳🇱 Palletbezorging vanaf €99 incl. btw • Interessepeiling — nog geen verkoop",
+      navModellen: "Kamado’s",
+      navAllInclusive: "Premium pakket",
       navAccessoires: "Accessoires",
-      navWaarom: "Waarom CraftKamado?",
+      navWaarom: "Waarom SmokeyKamado?",
       navReviews: "Ervaringen",
       navFaq: "FAQ",
       footerLinkFaq: "Veelgestelde Vragen (FAQ)",
       faqSectionTag: "Kennisbank & Antwoorden",
       faqSectionTitle: "Veelgestelde Vragen over de Kamado BBQ",
-      faqSectionDesc: "Alles wat je moet weten over het kiezen, grillen en onderhouden van jouw CraftKamado keramische barbecue.",
+      faqSectionDesc: "Alles wat je moet weten over het kiezen, grillen en onderhouden van jouw SmokeyKamado keramische barbecue.",
       faqQ1: "Wat maakt een keramische kamado barbecue superieur aan een gewone barbecue?",
-      faqA1: "Een keramische kamado BBQ is gemaakt van extra dik, hittebestendig Mullite keramiek (circa 3 cm dik). Deze enorme thermische massa houdt hitte en vocht ongeëvenaard goed vast in de kookkamer. Waar een traditionele stalen barbecue het vlees snel uitdroogt door tochtige luchtstromen, blijft bij een CraftKamado tot wel 40% meer vleessap behouden. Bovendien verbruik je tot 30% minder houtskool en kun je met één lading kwaliteits-houtskool tot wel 24 uur continu koken op 110°C (low & slow), of temperaturen bereiken tot 400°C voor authentieke steenovens pizza's en knapperige steaks.",
+      faqA1: "Een keramische kamado BBQ is gemaakt van extra dik, hittebestendig Mullite keramiek (circa 3 cm dik). Deze enorme thermische massa houdt hitte en vocht ongeëvenaard goed vast in de kookkamer. Waar een traditionele stalen barbecue het vlees snel uitdroogt door tochtige luchtstromen, blijft bij een SmokeyKamado tot wel 40% meer vleessap behouden. Bovendien verbruik je tot 30% minder houtskool en kun je met één lading kwaliteits-houtskool tot wel 24 uur continu koken op 110°C (low & slow), of temperaturen bereiken tot 400°C voor authentieke steenovens pizza's en knapperige steaks.",
       faqQ2: "Welke kamado maat (18, 21, 23 of 27 inch) is het meest geschikt voor mij?",
-      faqA2: "<p>De juiste maat hangt af van jouw huishouden en kookstijl:</p><ul><li><strong>18″ Basic & Premium:</strong> Ideaal voor balkons, stadstuinen en gezinnen van 2 tot 4 personen. Compact en snel op temperatuur.</li><li><strong>21″ Veelzijdig:</strong> Perfect voor gezinnen van 4 tot 6 personen die graag gerechten tegelijkertijd direct en indirect bereiden.</li><li><strong>23″ Bestseller:</strong> De populairste maat in Nederland! Geschikt voor 6 tot 10 personen. Ruim genoeg voor meerdere hele kippen, meerdere ribbenrekken of grote briskets en een volwaardige pizzasteen.</li><li><strong>27″ HoReCa Reus:</strong> De ultieme barbecue voor grote tuinen, professionele horeca en buitenkeukens waar grote gezelschappen tegelijk bediend worden.</li></ul>",
-      faqQ3: "Wat zit er standaard inbegrepen in het CraftKamado All-Inclusive pakket?",
-      faqA3: "<p>Bij ons hoef je geen honderden euro's aan essentiële accessoires bij te kopen. Elke CraftKamado wordt 100% compleet geleverd met:</p><ul><li>Gepatenteerd gewichtsloos <strong>Air Hinge veerscharnier</strong> (deksel blijft veilig zweven op elke gewenste stand).</li><li>Meerlaags <strong>Divide & Conquer kooksysteem</strong> met halve roosters en deflectorstenen.</li><li>Zwaar <strong>gietijzeren halve maan rooster</strong> voor perfecte grillstrepen.</li><li>Uitschuifbare <strong>RVS aslade & as-tool</strong> voor schoonmaken zonder stof.</li><li>Geïntegreerde <strong>rookhout toevoerpoort</strong> (houtsnippers toevoegen zonder het deksel te openen).</li><li>Zware <strong>waterdichte beschermhoes op maat</strong> met UV-coating.</li><li>Gepoedercoat <strong>stalen onderstel met 4 industriële zwenkwielen</strong> (waarvan 2 geremd).</li><li>Inklapbare <strong>natuurlijke bamboe zijtafels</strong> met handige gereedschapshaken.</li></ul>",
+      faqA2: "<p>De juiste maat hangt af van jouw huishouden en kookstijl:</p><ul><li><strong>18″ Premium:</strong> Ideaal voor balkons, stadstuinen en gezinnen van 2 tot 4 personen. Compact en snel op temperatuur.</li><li><strong>21″ Veelzijdig:</strong> Perfect voor gezinnen van 4 tot 6 personen die graag gerechten tegelijkertijd direct en indirect bereiden.</li><li><strong>23″ Bestseller:</strong> De populairste maat in Nederland! Geschikt voor 6 tot 10 personen. Ruim genoeg voor meerdere hele kippen, meerdere ribbenrekken of grote briskets en een volwaardige pizzasteen.</li><li><strong>27″ HoReCa Reus:</strong> De ultieme barbecue voor grote tuinen, professionele horeca en buitenkeukens waar grote gezelschappen tegelijk bediend worden.</li></ul>",
+      faqQ3: "Wat zit er standaard inbegrepen in het SmokeyKamado All-Inclusive pakket?",
+      faqA3: "<p>Premium specificatie:</p><ul><li>Zwarte HDPE zijtafels: Massief zwarte, inklapbare HDPE zijtafels met gereedschapshaken.</li><li>Compleet Divide & Conquer: Rek, 2 keramische halve-maan hitteschilden en 2 RVS halve-maan grillroosters.</li><li>2 gietijzeren halve-maan roosters: Gevraagde Premium specificatie: 1 complete set van 2 roosters. Inbegrepen levering nog te bevestigen.</li><li>RVS aslade: Uitschuifbare roestvaststalen aslade.</li><li>RVS wood-chip feeder: Complete buisvormige roestvaststalen wood-chip feeder.</li><li>Waterdichte Oxford hoes: Hoes in de juiste maat, van Oxford-stof met waterdichte PU-laag.</li><li>Premium zwart onderstel: Zwaar zwart onderstel met massief bodemschap en 4 zware wielen, waarvan 2 geremd.</li><li>Zwarte banden, RVS bevestigingen: Zware zwarte metalen banden. RVS schroeven, bouten, moeren, ringen en bevestigingsmateriaal voor de volledige montage.</li><li>Strong Hinge / Air Hinge & sluiting: 18″ Premium: Strong Hinge. 21″/23″/27″: verstelbare Air Hinge. Inclusief dekselsluiting en zwarte handgreep.</li><li>RVS onderste ventilatieschuif: Roestvaststalen luchtregeling aan de onderzijde.</li><li>Zwarte topventilatie: Premium zwarte top vent met dubbele handgreep.</li><li>Zwarte thermometer: Ingebouwde zwarte thermometer.</li><li>Glasvezel pakking: Fiberglass gasket rondom de sluiting.</li><li>Complete keramische vuurbox: Zware meerdelige keramische vuurbox, complete vuurring en zware houtskoolplaat / vuurrooster.</li><li>Matte Bubble Glaze: Matte Bubble Glaze keramische behuizing en deksel in de opgegeven Pantone-kleuren.</li></ul>",
       faqQ4: "Hoe verloopt de bezorging en palletlevering in Nederland?",
-      faqA4: "Alle kamado's worden <strong>gratis en volledig verzekerd</strong> op een speciale transportpallet geleverd door onze gespecialiseerde Nederlandse palletvervoerder. Vooraf ontvang je een track & trace code en wordt er telefonisch of via sms contact opgenomen om het bezorgmoment af te stemmen. De chauffeur plaatst de pallet veilig met een pompwagen bij jouw voordeur, op de oprit of achterom.",
+      faqA4: "Geplande bezorgkosten op het Nederlandse vasteland: 18″/21″/23″ €99, 27″ €129 incl. btw per kamado. Losse accessoires: €7,95 per bestelling. Levering aan de stoeprand op een bereikbare, verharde plek. Eilanden en bijzondere adressen op offerte. Dit is een interessepeiling; kosten en levertijd worden vóór een eventuele aankoop bevestigd. <a href=\"/support/shipping\">Lees de bezorginformatie</a>.",
       faqQ5: "Kan de keramische kamado het hele jaar door buiten blijven staan in de Nederlandse winter?",
-      faqA5: "Ja, de CraftKamado is speciaal ontwikkeld voor het wisselvallige Noord-Europese klimaat. Het hoogwaardige Mullite keramiek en het roestvaste geglazuurde oppervlak zijn ongevoelig voor vorst, regen en sneeuw. Wij adviseren om de meegeleverde zware beschermhoes te gebruiken wanneer je de kamado niet gebruikt, zodat metalen onderdelen en bamboe tafels in topconditie blijven.",
+      faqA5: "Ja, de SmokeyKamado is speciaal ontwikkeld voor het wisselvallige Noord-Europese klimaat. Het hoogwaardige Mullite keramiek en het roestvaste geglazuurde oppervlak zijn ongevoelig voor vorst, regen en sneeuw. Wij adviseren om de meegeleverde zware beschermhoes te gebruiken wanneer je de kamado niet gebruikt, zodat metalen onderdelen en HDPE tafels in topconditie blijven.",
 
       cartTriggerText: "Winkelwagen",
       heroTitle: "Keramisch Meesterschap.<br><span class=\"highlight\">All-Inclusive</span> Geleverd.",
-      heroSubtitle: "Geen verborgen kosten, geen losse accessoires bijkopen. CraftKamado levert de meest complete keramische barbecue van Nederland, vervaardigd uit zwaar Mullite keramiek met gepatenteerd Air Hinge scharnier.",
+      heroSubtitle: "Geen verborgen kosten, geen losse accessoires bijkopen. SmokeyKamado levert de meest complete keramische barbecue van Nederland, vervaardigd uit zwaar Mullite keramiek met gepatenteerd Air Hinge scharnier.",
       
       // Modellen Section
       modelsSectionTag: "Formaten & Uitvoeringen",
-      modelsSectionTitle: "Kies Jouw Perfecte CraftKamado",
-      modelsSectionDesc: "Selecteer een model, formaat en kleur. Alle modellen worden geleverd met ons complete All-Inclusive pakket.",
+      modelsSectionTitle: "Maak hem van jou.",
+      modelsSectionDesc: "Bekijk de uitvoering en beschikbare kleuren.",
       tabTitle_18_basic: "18″ Basic",
       tabTitle_18_premium: "18″ Premium",
       tabTitle_21: "21″ Veelzijdig",
@@ -263,29 +241,29 @@
       specLabelPeople: "Capaciteit",
       specLabelWeight: "Gewicht",
       colorPickerLabel: "Kies Kleur:",
-      modelVatTag: "Inclusief 21% BTW & Gratis Bezorging",
+      modelVatTag: "Incl. 21% btw • bezorging apart, vanaf €99",
       addKamadoBtnText: "In Winkelwagen Leggen",
       
       // All-Inclusive Section
       incSectionTag: "Ongeëvenaarde Waarde",
-      incSectionTitle: "Wat zit er Standaard in het Pakket?",
-      incSectionDesc: "Bij andere merken betaal je honderden euro's extra voor accessoires. Bij CraftKamado is alles direct inbegrepen.",
-      incCardTitle1: "Air Hinge Veerscharnier",
-      incCardDesc1: "Moeiteloos openen en sluiten. De zware deksel blijft op elke gewenste stand veilig zweven zonder dicht te klappen.",
-      incCardTitle2: "Divide & Conquer Kooksysteem",
-      incCardDesc2: "Tweedelig flexibel kooksysteem op verschillende hoogtes. Combineer tegelijkertijd direct grillen en indirect roken.",
-      incCardTitle3: "Gietijzeren Halve Maan Rooster",
-      incCardDesc3: "Inclusief zwaar gietijzeren rooster voor sensationele grillstrepen en sublieme karamellisatie van je vlees.",
-      incCardTitle4: "RVS Aslade & Schraper",
-      incCardDesc4: "Gemakkelijk as verwijderen in een handomdraai zonder knoeien via de uitschuifbare RVS aslade.",
-      incCardTitle5: "Rookhout Toevoerpoort",
-      incCardDesc5: "Voeg houtsnippers of chunks toe tijdens lange rooksessies zonder het deksel te openen en warmte te verliezen.",
-      incCardTitle6: "Zware Weersbestendige Hoes",
-      incCardDesc6: "Extra dikke, UV- en waterbestendige beschermhoes op maat, zodat jouw kamado in elk seizoen beschermd buiten staat.",
-      incCardTitle7: "Zwaar Rolbaar Onderstel",
-      incCardDesc7: "Gepoedercoat stalen frame met 4 grote industriële zwenkwielen (waarvan 2 met stevige remvoet).",
-      incCardTitle8: "Inklapbare Bamboe Zijtafels",
-      incCardDesc8: "Stevige natuurlijke bamboe zijtafels met praktische haken voor je spatels, vleestangen en theedoeken.",
+      incSectionTitle: "Premium. Tot in het detail.",
+      incSectionDesc: "Premium specificatie: zwart metaal en RVS functionele onderdelen. Gietijzeren roosters: inbegrepen levering nog te bevestigen.",
+      incCardTitle1: "Zwarte HDPE zijtafels",
+      incCardDesc1: "Massief zwarte, inklapbare HDPE zijtafels met gereedschapshaken.",
+      incCardTitle2: "Compleet Divide & Conquer",
+      incCardDesc2: "Rek, 2 keramische halve-maan hitteschilden en 2 RVS halve-maan grillroosters.",
+      incCardTitle3: "2 gietijzeren halve-maan roosters",
+      incCardDesc3: "Gevraagde Premium specificatie: 1 complete set van 2 roosters. Inbegrepen levering nog te bevestigen.",
+      incCardTitle4: "RVS aslade",
+      incCardDesc4: "Uitschuifbare roestvaststalen aslade.",
+      incCardTitle5: "RVS wood-chip feeder",
+      incCardDesc5: "Complete buisvormige roestvaststalen wood-chip feeder.",
+      incCardTitle6: "Waterdichte Oxford hoes",
+      incCardDesc6: "Hoes in de juiste maat, van Oxford-stof met waterdichte PU-laag.",
+      incCardTitle7: "Premium zwart onderstel",
+      incCardDesc7: "Zwaar zwart onderstel met massief bodemschap en 4 zware wielen, waarvan 2 geremd.",
+      incCardTitle8: "Zwarte banden, RVS bevestigingen",
+      incCardDesc8: "Zware zwarte metalen banden. RVS schroeven, bouten, moeren, ringen en bevestigingsmateriaal voor de volledige montage.",
 
       // Accessories Section
       accSectionTag: "Maatwerk Accessoires",
@@ -297,7 +275,7 @@
       // Waarom Section
       whySectionTag: "Superieure Bouwkwaliteit",
       whySectionTitle: "Ontwikkeld voor Echte BBQ Fanaten",
-      whySectionDesc: "CraftKamado is ontstaan uit één heldere filosofie: een compromisloze keramische barbecue bouwen met de allerbeste materialen, zónder de torenhoge marketingopslagen van gevestigde merken.",
+      whySectionDesc: "SmokeyKamado is ontstaan uit één heldere filosofie: een compromisloze keramische barbecue bouwen met de allerbeste materialen, zónder de torenhoge marketingopslagen van gevestigde merken.",
       whyFeatTitle1: "Speciaal Mullite Keramiek",
       whyFeatDesc1: "Uitzonderlijk bestand tegen thermische schokken en temperaturen tot wel 1.000°C. Scheurt niet bij vrieskou of plotse hitte.",
       whyFeatTitle2: "30% Zuiniger Houtskoolverbruik",
@@ -316,14 +294,14 @@
       cartDrawerTitle: "Jouw Winkelwagen",
       cartRowKamadoLabel: "Kamado:",
       cartRowAccLabel: "Accessoires:",
-      cartRowDeliveryLabel: "Palletbezorging (Nederland):",
-      cartFreeLabel: "GRATIS",
+      cartRowDeliveryLabel: "Bezorging (indicatie):",
+      cartFreeLabel: "—",
       cartRowTotalLabel: "Totaal (incl. BTW):",
       emptyCartMsg: "Je winkelwagen is nog leeg.",
-      goToCheckoutBtn: "Doorgaan naar Bestellen",
+      goToCheckoutBtn: "Interesse doorgeven",
 
       // Checkout Modal
-      chkModalTitle: "Afrekenen & Gegevens",
+      chkModalTitle: "Jouw interesse & gegevens",
       chkStep1Title: "1. Contactgegevens",
       chkLabelEmail: "E-mailadres *",
       chkLabelPhone: "Telefoonnummer *",
@@ -332,21 +310,21 @@
       chkLabelStreet: "Straat en huisnummer",
       chkLabelZip: "Postcode *",
       chkLabelCity: "Woonplaats *",
-      chkStep3Title: "3. Kies Betaalmethode",
+      chkStep3Title: "3. Gewenste betaalmethode bij opening",
       chkIdealSub: "Direct en veilig via Rabobank, ING, ABN AMRO, etc.",
       chkKlarnaSub: "Achteraf betalen binnen 30 dagen",
       chkSumModelLabel: "Gekozen model:",
       chkSumKamadoLabel: "Kamado prijs:",
       chkSumAccLabel: "Accessoires:",
-      chkSumShipLabel: "Palletbezorging:",
-      chkSumFreeLabel: "Gratis",
+      chkSumShipLabel: "Bezorging (indicatie):",
+      chkSumFreeLabel: "—",
       chkSumTotalLabel: "Totaalbedrag:",
-      submitIntentBtn: "Doorgaan naar betaling",
-      chkSslNotice: "🔒 Veilig afrekenen via 256-bit SSL verbinding",
+      submitIntentBtn: "Interesse vrijblijvend versturen",
+      chkSslNotice: "Geen betaling of bestelling. Prijzen en bezorgkosten zijn indicatief.",
 
       // Notice Modal
-      noticeTitle: "Bedankt voor je interesse in CraftKamado!",
-      noticeBody1: "De door jou gekozen CraftKamado is momenteel nog niet beschikbaar in Nederland. We bereiden onze Nederlandse introductie voor.",
+      noticeTitle: "Bedankt voor je interesse in SmokeyKamado!",
+      noticeBody1: "De door jou gekozen SmokeyKamado is momenteel nog niet beschikbaar in Nederland. We bereiden onze Nederlandse introductie voor.",
       noticeBody2: "Je bestelling is niet geplaatst en er is niets in rekening gebracht.",
       noticePrompt: "Wil je als eerste bericht krijgen zodra jouw gekozen Kamado beschikbaar is?",
       vipNotifyBtn: "Ja, houd mij op de hoogte",
@@ -354,51 +332,79 @@
       vipAckMsg: "✓ Dankjewel! We hebben je e-mailadres (<strong>{email}</strong>) genoteerd. Zodra jouw gekozen Kamado beschikbaar is, ontvang je direct bericht als eerste!",
 
       // Footer
-      footerDesc: "Dé all-inclusive keramische barbecue met levenslange garantie op het keramiek. Kwaliteit zonder concessies.",
-      footerCopyright: "© 2026 CraftKamado Nederland. Alle rechten voorbehouden.",
+      footerDesc: "Keramische kamados en accessoires. Ontdek het assortiment en meld vrijblijvend je interesse.",
+
+      incCardTitle9: "Strong Hinge / Air Hinge & sluiting",
+
+      incCardDesc9: "18″ Premium: Strong Hinge. 21″/23″/27″: verstelbare Air Hinge. Inclusief dekselsluiting en zwarte handgreep.",
+
+      incCardTitle10: "RVS onderste ventilatieschuif",
+
+      incCardDesc10: "Roestvaststalen luchtregeling aan de onderzijde.",
+
+      incCardTitle11: "Zwarte topventilatie",
+
+      incCardDesc11: "Premium zwarte top vent met dubbele handgreep.",
+
+      incCardTitle12: "Zwarte thermometer",
+
+      incCardDesc12: "Ingebouwde zwarte thermometer.",
+
+      incCardTitle13: "Glasvezel pakking",
+
+      incCardDesc13: "Fiberglass gasket rondom de sluiting.",
+
+      incCardTitle14: "Complete keramische vuurbox",
+
+      incCardDesc14: "Zware meerdelige keramische vuurbox, complete vuurring en zware houtskoolplaat / vuurrooster.",
+
+      incCardTitle15: "Matte Bubble Glaze",
+
+      incCardDesc15: "Matte Bubble Glaze keramische behuizing en deksel in de opgegeven Pantone-kleuren.",
+      footerCopyright: "© 2026 SmokeyKamado Nederland. Alle rechten voorbehouden.",
       footerColQuick: "Snelle Links",
       footerLinkModellen: "Kamado Modellen",
       footerLinkAllInc: "Inbegrepen Pakket",
       footerLinkAcc: "Maatwerk Accessoires",
       footerLinkWaarom: "Onze Filosofie",
       footerColSupport: "Klantenservice",
-      footerSupportShip: "Verzending: Gratis palletlevering in heel Nederland",
-      footerSupportWarranty: "Garantie: Levenslang op keramiek, 5 jaar op scharnieren",
-      footerSupportReturns: "Retourneren: 30 dagen bedenktermijn",
+      footerSupportShip: "Verzending: tarieven en levering",
+      footerSupportWarranty: "Garantie: rechten en service",
+      footerSupportReturns: "Retourneren: 30 dagen bedenktijd",
       footerColSecurity: "Veiligheid & Betaalmethoden",
       footerSslNote: "🔒 256-bit SSL Beveiligde Verbinding"
     },
     en: {
-      topBanner: "🇳🇱 <strong>Free insured pallet delivery</strong> throughout the Netherlands • Temporary spring promotion: All-Inclusive package included!",
-      navModellen: "Kamado Models",
-      navAllInclusive: "All-Inclusive Gear",
+      topBanner: "🇳🇱 Pallet delivery from €99 incl. VAT • Interest registration — sales not open yet",
+      navModellen: "Kamados",
+      navAllInclusive: "Premium package",
       navAccessoires: "Accessories",
-      navWaarom: "Why CraftKamado?",
+      navWaarom: "Why SmokeyKamado?",
       navReviews: "Reviews",
       navFaq: "FAQ",
       footerLinkFaq: "Frequently Asked Questions (FAQ)",
       faqSectionTag: "Knowledge Base & FAQ",
       faqSectionTitle: "Frequently Asked Questions About Kamado BBQ",
-      faqSectionDesc: "Everything you need to know about choosing, grilling and maintaining your CraftKamado ceramic barbecue grill.",
+      faqSectionDesc: "Everything you need to know about choosing, grilling and maintaining your SmokeyKamado ceramic barbecue grill.",
       faqQ1: "What makes a ceramic kamado barbecue superior to a standard grill?",
-      faqA1: "A ceramic kamado BBQ is crafted from heavy-duty, heat-retaining Mullite ceramic (approx. 3 cm thick). This massive thermal mass retains heat and moisture exceptionally well inside the dome. While a traditional steel grill quickly dries meat out due to harsh drafts, CraftKamado preserves up to 40% more natural meat juices. Furthermore, you consume up to 30% less charcoal and can cook low & slow at 110°C for up to 24 continuous hours on a single load of lump charcoal, or reach searing heat up to 400°C for authentic stone-baked pizzas and steaks.",
+      faqA1: "A ceramic kamado BBQ is crafted from heavy-duty, heat-retaining Mullite ceramic (approx. 3 cm thick). This massive thermal mass retains heat and moisture exceptionally well inside the dome. While a traditional steel grill quickly dries meat out due to harsh drafts, SmokeyKamado preserves up to 40% more natural meat juices. Furthermore, you consume up to 30% less charcoal and can cook low & slow at 110°C for up to 24 continuous hours on a single load of lump charcoal, or reach searing heat up to 400°C for authentic stone-baked pizzas and steaks.",
       faqQ2: "Which kamado size (18, 21, 23 or 27 inch) is best suited for me?",
-      faqA2: "<p>The ideal size depends on your household and cooking style:</p><ul><li><strong>18″ Basic & Premium:</strong> Ideal for balconies, urban gardens and households of 2–4 people. Compact and rapid heat-up.</li><li><strong>21″ Versatile:</strong> Perfect for families of 4–6 who enjoy simultaneous direct and indirect multi-zone grilling.</li><li><strong>23″ Bestseller:</strong> The most popular size in the Netherlands! Feeds 6–10 guests. Spacious enough for multiple whole chickens, racks of ribs or briskets alongside a pizza stone.</li><li><strong>27″ HoReCa Giant:</strong> The ultimate outdoor kitchen grill for large gatherings, catering and commercial gastronomy.</li></ul>",
-      faqQ3: "What is included out-of-the-box in the CraftKamado All-Inclusive package?",
-      faqA3: "<p>With us, you do not have to spend hundreds of euros on essential gear. Every CraftKamado arrives 100% complete with:</p><ul><li>Patented counter-balanced <strong>Air Hinge spring mechanism</strong> (the lid stays safely floating at any desired angle).</li><li>Multi-tier <strong>Divide & Conquer cooking system</strong> with half-moon grates and heat deflectors.</li><li>Heavy-duty <strong>cast iron half-moon sear grate</strong> for restaurant marks.</li><li>Sliding <strong>stainless ash drawer & ash tool</strong> for clean disposal.</li><li>Integrated <strong>wood chip feeder port</strong> (add smoke chunks mid-cook without opening the dome).</li><li>Heavy-duty <strong>waterproof all-weather cover</strong> with UV protection.</li><li>Powder-coated <strong>steel rolling cart with 4 industrial casters</strong> (including 2 locks).</li><li>Folding <strong>natural bamboo side tables</strong> with integrated accessory hooks.</li></ul>",
+      faqA2: "<p>The ideal size depends on your household and cooking style:</p><ul><li><strong>18″ Premium:</strong> Ideal for balconies, urban gardens and households of 2–4 people. Compact and rapid heat-up.</li><li><strong>21″ Versatile:</strong> Perfect for families of 4–6 who enjoy simultaneous direct and indirect multi-zone grilling.</li><li><strong>23″ Bestseller:</strong> The most popular size in the Netherlands! Feeds 6–10 guests. Spacious enough for multiple whole chickens, racks of ribs or briskets alongside a pizza stone.</li><li><strong>27″ HoReCa Giant:</strong> The ultimate outdoor kitchen grill for large gatherings, catering and commercial gastronomy.</li></ul>",
+      faqQ3: "What is included out-of-the-box in the SmokeyKamado All-Inclusive package?",
+      faqA3: "<p>Premium specification:</p><ul><li>Solid black HDPE side tables: Folding solid black HDPE side tables with tool hooks.</li><li>Complete Divide & Conquer: Rack, 2 ceramic half-moon deflectors and 2 stainless-steel half-moon cooking grids.</li><li>2 cast-iron half-moon grids: Requested Premium specification: 1 complete set of 2 grids. Inclusion still to be confirmed.</li><li>Stainless-steel ash drawer: Slide-out stainless-steel ash drawer.</li><li>Stainless-steel wood-chip feeder: Complete tubular stainless-steel wood-chip feeder.</li><li>Waterproof Oxford cover: Correct-size Oxford fabric cover with waterproof PU coating.</li><li>Premium black cart: Heavy-duty black cart with solid bottom shelf and 4 heavy-duty wheels, 2 with brakes.</li><li>Black bands, stainless hardware: Heavy-duty black metal bands. Stainless-steel screws, bolts, nuts, washers and hardware for complete assembly.</li><li>Strong Hinge / Air Hinge & lid lock: 18″ Premium: Strong Hinge. 21″/23″/27″: adjustable Air Hinge. Includes lid lock and black front handle.</li><li>Stainless-steel bottom vent: Stainless-steel lower airflow control.</li><li>Black top vent: Premium black double-handle top vent.</li><li>Black thermometer: Built-in black thermometer.</li><li>Fiberglass gasket: Fiberglass gasket around the lid seal.</li><li>Complete ceramic firebox: Heavy-duty multi-piece ceramic firebox, complete fire ring and heavy-duty charcoal plate / fire grate.</li><li>Matte Bubble Glaze: Matte Bubble Glaze ceramic body and lid in the specified Pantone colours.</li></ul>",
       faqQ4: "How does delivery and pallet shipping work in the Netherlands?",
-      faqA4: "All kamados are delivered <strong>free and fully insured</strong> on a dedicated transport pallet across the Netherlands. You will receive a tracking code and a phone call or SMS from our carrier in advance to coordinate your preferred delivery window. The driver safely places the pallet via pallet truck at your front door, driveway or garden gate.",
+      faqA4: "Planned mainland Netherlands delivery: 18″/21″/23″ €99, 27″ €129 incl. VAT per kamado. Accessories only: €7.95 per order. Kerbside delivery to an accessible, paved location. Islands and special access require a quote. This is an interest survey; costs and delivery dates are confirmed before any purchase. <a href=\"/support/shipping?lang=en\">Read delivery information</a>.",
       faqQ5: "Can the ceramic kamado stay outdoors all year round in winter?",
-      faqA5: "Yes, CraftKamado is engineered specifically for the demanding North-European climate. The high-grade Mullite ceramic and glazed exterior are impervious to frost, snow and rain. We recommend using the included heavy-duty weatherproof cover when not in use to keep bamboo tables and hardware in pristine condition.",
+      faqA5: "Yes, SmokeyKamado is engineered specifically for the demanding North-European climate. The high-grade Mullite ceramic and glazed exterior are impervious to frost, snow and rain. We recommend using the included heavy-duty weatherproof cover when not in use to keep HDPE tables and hardware in pristine condition.",
 
       cartTriggerText: "Cart",
       heroTitle: "Ceramic Mastery.<br><span class=\"highlight\">All-Inclusive</span> Delivered.",
-      heroSubtitle: "No hidden costs, no separate accessories to purchase. CraftKamado delivers the most complete ceramic BBQ in the Netherlands, crafted from heavy-duty Mullite ceramic with patented Air Hinge counter-balance.",
+      heroSubtitle: "No hidden costs, no separate accessories to purchase. SmokeyKamado delivers the most complete ceramic BBQ in the Netherlands, crafted from heavy-duty Mullite ceramic with patented Air Hinge counter-balance.",
       
       // Modellen Section
       modelsSectionTag: "Sizes & Editions",
-      modelsSectionTitle: "Choose Your Perfect CraftKamado",
-      modelsSectionDesc: "Select a model, size and color. All models arrive complete with our comprehensive All-Inclusive package.",
+      modelsSectionTitle: "Make it yours.",
+      modelsSectionDesc: "View the edition and available colours.",
       tabTitle_18_basic: "18″ Basic",
       tabTitle_18_premium: "18″ Premium",
       tabTitle_21: "21″ Versatile",
@@ -410,29 +416,29 @@
       specLabelPeople: "Capacity",
       specLabelWeight: "Weight",
       colorPickerLabel: "Choose Color:",
-      modelVatTag: "Includes 21% VAT & Free Insured Delivery",
+      modelVatTag: "Incl. 21% VAT • delivery extra, from €99",
       addKamadoBtnText: "Add to Shopping Cart",
       
       // All-Inclusive Section
       incSectionTag: "Unmatched Value",
-      incSectionTitle: "What's Included as Standard?",
-      incSectionDesc: "Other brands charge hundreds of euros extra for essential gear. With CraftKamado, everything is fully included out of the box.",
-      incCardTitle1: "Air Hinge Spring System",
-      incCardDesc1: "Effortless opening and closing. Heavy lid stays safely counter-balanced at any desired angle without slamming shut.",
-      incCardTitle2: "Divide & Conquer Cooking System",
-      incCardDesc2: "Two-level flexible cooking system. Simultaneously grill direct and smoke indirect at different heat levels.",
-      incCardTitle3: "Cast Iron Half-Moon Grate",
-      incCardDesc3: "Includes heavy-duty cast iron grate for restaurant-grade searing and mouthwatering caramelization.",
-      incCardTitle4: "Stainless Ash Drawer & Scraper",
-      incCardDesc4: "Effortless ash disposal in seconds without mess via the sliding stainless steel drawer and ash tool.",
-      incCardTitle5: "Wood Chip Feeder Port",
-      incCardDesc5: "Add smoking chips or chunks mid-cook without lifting the dome or losing heat.",
-      incCardTitle6: "Heavy All-Weather Cover",
-      incCardDesc6: "Heavy-duty waterproof and UV-resistant custom fitted cover to keep your kamado protected outdoors all year round.",
-      incCardTitle7: "Heavy Rolling Cart",
-      incCardDesc7: "Powder-coated steel cart with 4 large industrial caster wheels (including 2 heavy foot locks).",
-      incCardTitle8: "Folding Bamboo Side Shelves",
-      incCardDesc8: "Sturdy natural bamboo shelves with integrated accessory hooks for spatulas, meat tongs and towels.",
+      incSectionTitle: "Premium. Down to the last detail.",
+      incSectionDesc: "Premium specification: black metal and functional stainless-steel components. Cast-iron grids: inclusion still to be confirmed.",
+      incCardTitle1: "Solid black HDPE side tables",
+      incCardDesc1: "Folding solid black HDPE side tables with tool hooks.",
+      incCardTitle2: "Complete Divide & Conquer",
+      incCardDesc2: "Rack, 2 ceramic half-moon deflectors and 2 stainless-steel half-moon cooking grids.",
+      incCardTitle3: "2 cast-iron half-moon grids",
+      incCardDesc3: "Requested Premium specification: 1 complete set of 2 grids. Inclusion still to be confirmed.",
+      incCardTitle4: "Stainless-steel ash drawer",
+      incCardDesc4: "Slide-out stainless-steel ash drawer.",
+      incCardTitle5: "Stainless-steel wood-chip feeder",
+      incCardDesc5: "Complete tubular stainless-steel wood-chip feeder.",
+      incCardTitle6: "Waterproof Oxford cover",
+      incCardDesc6: "Correct-size Oxford fabric cover with waterproof PU coating.",
+      incCardTitle7: "Premium black cart",
+      incCardDesc7: "Heavy-duty black cart with solid bottom shelf and 4 heavy-duty wheels, 2 with brakes.",
+      incCardTitle8: "Black bands, stainless hardware",
+      incCardDesc8: "Heavy-duty black metal bands. Stainless-steel screws, bolts, nuts, washers and hardware for complete assembly.",
 
       // Accessories Section
       accSectionTag: "Custom Accessories",
@@ -444,7 +450,7 @@
       // Waarom Section
       whySectionTag: "Superior Build Quality",
       whySectionTitle: "Engineered for True BBQ Enthusiasts",
-      whySectionDesc: "CraftKamado was born from a clear principle: build an uncompromising ceramic grill using the finest materials, without the inflated markups of traditional brands.",
+      whySectionDesc: "SmokeyKamado was born from a clear principle: build an uncompromising ceramic grill using the finest materials, without the inflated markups of traditional brands.",
       whyFeatTitle1: "Specialized Mullite Ceramic",
       whyFeatDesc1: "Exceptional thermal shock resistance up to 1,000°C. Resists cracking during sudden temperature spikes or winter frosts.",
       whyFeatTitle2: "30% Lower Charcoal Consumption",
@@ -463,14 +469,14 @@
       cartDrawerTitle: "Your Shopping Cart",
       cartRowKamadoLabel: "Kamado:",
       cartRowAccLabel: "Accessories:",
-      cartRowDeliveryLabel: "Pallet Delivery (Netherlands):",
-      cartFreeLabel: "FREE",
+      cartRowDeliveryLabel: "Delivery (estimate):",
+      cartFreeLabel: "—",
       cartRowTotalLabel: "Total (incl. VAT):",
       emptyCartMsg: "Your shopping cart is currently empty.",
-      goToCheckoutBtn: "Proceed to Checkout",
+      goToCheckoutBtn: "Register your interest",
 
       // Checkout Modal
-      chkModalTitle: "Checkout & Shipping",
+      chkModalTitle: "Your interest & details",
       chkStep1Title: "1. Contact Details",
       chkLabelEmail: "Email Address *",
       chkLabelPhone: "Phone Number *",
@@ -479,21 +485,21 @@
       chkLabelStreet: "Street and house number",
       chkLabelZip: "Postal Code *",
       chkLabelCity: "City *",
-      chkStep3Title: "3. Select Payment Method",
+      chkStep3Title: "3. Preferred payment method at launch",
       chkIdealSub: "Fast and secure via Dutch bank transfer (Rabobank, ING, ABN AMRO, etc.)",
       chkKlarnaSub: "Pay later within 30 days",
       chkSumModelLabel: "Selected model:",
       chkSumKamadoLabel: "Kamado price:",
       chkSumAccLabel: "Accessories:",
-      chkSumShipLabel: "Pallet delivery:",
-      chkSumFreeLabel: "Free",
+      chkSumShipLabel: "Delivery (estimate):",
+      chkSumFreeLabel: "—",
       chkSumTotalLabel: "Total amount:",
-      submitIntentBtn: "Continue to payment",
-      chkSslNotice: "🔒 Secure checkout via 256-bit SSL encryption",
+      submitIntentBtn: "Send non-binding interest",
+      chkSslNotice: "No payment or order. Prices and delivery costs are estimates.",
 
       // Notice Modal
-      noticeTitle: "Thank you for your interest in CraftKamado!",
-      noticeBody1: "The CraftKamado you selected is currently not yet available in the Netherlands. We are preparing our launch in the Netherlands.",
+      noticeTitle: "Thank you for your interest in SmokeyKamado!",
+      noticeBody1: "The SmokeyKamado you selected is currently not yet available in the Netherlands. We are preparing our launch in the Netherlands.",
       noticeBody2: "Your order has not been placed and nothing has been charged.",
       noticePrompt: "Would you like to be the first to know as soon as your chosen Kamado becomes available?",
       vipNotifyBtn: "Yes, keep me updated",
@@ -501,17 +507,45 @@
       vipAckMsg: "✓ Thank you! We have noted your email address (<strong>{email}</strong>). As soon as your chosen Kamado is available, you will be the first to know!",
 
       // Footer
-      footerDesc: "The all-inclusive ceramic barbecue with lifetime warranty on ceramics. Uncompromising quality.",
-      footerCopyright: "© 2026 CraftKamado Netherlands. All rights reserved.",
+      footerDesc: "Ceramic kamados and accessories. Explore the range and register your interest without obligation.",
+
+      incCardTitle9: "Strong Hinge / Air Hinge & lid lock",
+
+      incCardDesc9: "18″ Premium: Strong Hinge. 21″/23″/27″: adjustable Air Hinge. Includes lid lock and black front handle.",
+
+      incCardTitle10: "Stainless-steel bottom vent",
+
+      incCardDesc10: "Stainless-steel lower airflow control.",
+
+      incCardTitle11: "Black top vent",
+
+      incCardDesc11: "Premium black double-handle top vent.",
+
+      incCardTitle12: "Black thermometer",
+
+      incCardDesc12: "Built-in black thermometer.",
+
+      incCardTitle13: "Fiberglass gasket",
+
+      incCardDesc13: "Fiberglass gasket around the lid seal.",
+
+      incCardTitle14: "Complete ceramic firebox",
+
+      incCardDesc14: "Heavy-duty multi-piece ceramic firebox, complete fire ring and heavy-duty charcoal plate / fire grate.",
+
+      incCardTitle15: "Matte Bubble Glaze",
+
+      incCardDesc15: "Matte Bubble Glaze ceramic body and lid in the specified Pantone colours.",
+      footerCopyright: "© 2026 SmokeyKamado Netherlands. All rights reserved.",
       footerColQuick: "Quick Links",
       footerLinkModellen: "Kamado Models",
       footerLinkAllInc: "Included Gear",
       footerLinkAcc: "Tailored Accessories",
       footerLinkWaarom: "Our Philosophy",
       footerColSupport: "Customer Support",
-      footerSupportShip: "Shipping: Free insured pallet delivery in the Netherlands",
-      footerSupportWarranty: "Warranty: Lifetime on ceramics, 5 years on hardware",
-      footerSupportReturns: "Returns: 30-day return policy",
+      footerSupportShip: "Shipping: rates and delivery",
+      footerSupportWarranty: "Warranty: rights and support",
+      footerSupportReturns: "Returns: 30-day withdrawal period",
       footerColSecurity: "Security & Payment Methods",
       footerSslNote: "🔒 256-bit SSL Secure Connection"
     }
@@ -538,13 +572,24 @@
     return ref ? ref.replace(/https?:\/\/(www\.)?/, "").split("/")[0] : "Direct";
   }
 
-  const trafficSource = detectSource();
+  // Preserve the acquisition source while navigating between product pages.
+  const internalNavigation = document.referrer && new URL(document.referrer).origin === location.origin;
+  const previousSource = sessionStorage.getItem('smokey_source');
+  const trafficSource = !getUrlParams().utm_source && internalNavigation && previousSource ? previousSource : detectSource();
+  sessionStorage.setItem('smokey_source', trafficSource);
+  const landingPage = internalNavigation && sessionStorage.getItem('smokey_landing')
+    ? sessionStorage.getItem('smokey_landing') : location.pathname + location.search;
+  sessionStorage.setItem('smokey_landing', landingPage);
 
   // --- STATE ---
   let currentLang = localStorage.getItem("craft_nl_lang") || (new URLSearchParams(window.location.search).get("lang") === "en" ? "en" : "nl");
-  let activeModelKey = "23";
-  let initialColor = "Black";
-  let currentColor = COLOR_OPTIONS[0];
+  const routeParts = window.location.pathname.replace(/\/$/, "").split("/");
+  const detailModelKey = routeParts[1] === "kamados" ? routeParts[2].replace("-", "_") : null;
+  const detailAccessory = routeParts[1] === "accessories" ? ACCESSORIES.find(a => a.id === routeParts[2]) : null;
+  let activeModelKey = KAMADO_MODELS[detailModelKey] ? detailModelKey : "23";
+  let initialColor = "Not selected";
+  let inventory = null;
+  let currentColor = { id: null, name: "Not selected", displayName: { nl: "Kleur niet gekozen", en: "Colour not selected" } };
   let cart = [];
   let checkoutEmailEntered = "";
 
@@ -572,7 +617,7 @@
             ...payload,
             lang: currentLang,
             source: trafficSource,
-            landingPage: window.location.pathname + window.location.search,
+            landingPage,
             initialColor,
             finalColor: currentColor.name,
             timestamp: new Date().toISOString()
@@ -584,7 +629,7 @@
 
   async function syncCartTelemetry(lastStep = "cart") {
     try {
-      const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.qty), 0) + shippingAmount(cart);
       await fetch("/api/market-test/cart-update", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -601,7 +646,7 @@
   }
 
   function formatEur(amount) {
-    return "€" + Number(amount || 0).toLocaleString("nl-NL") + ",-";
+    return new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(Number(amount || 0));
   }
 
   // --- I18N SWITCHER ---
@@ -661,7 +706,7 @@
     setElemText("incSectionTag", t.incSectionTag);
     setElemText("incSectionTitle", t.incSectionTitle);
     setElemText("incSectionDesc", t.incSectionDesc);
-    for (let i = 1; i <= 8; i++) {
+    for (let i = 1; i <= 15; i++) {
       setElemText(`incCardTitle${i}`, t[`incCardTitle${i}`]);
       setElemText(`incCardDesc${i}`, t[`incCardDesc${i}`]);
     }
@@ -755,6 +800,8 @@
     setElemText("footerSupportShip", t.footerSupportShip);
     setElemText("footerSupportWarranty", t.footerSupportWarranty);
     setElemText("footerSupportReturns", t.footerSupportReturns);
+    document.querySelectorAll("a[href^='/support/']").forEach(a => { a.href = a.pathname + "?lang=" + currentLang; });
+    setElemText("deliveryEstimateNotice", currentLang === "en" ? "Interest registration only — no purchase or payment. Mainland delivery estimate; islands and special access require a quote. For future purchases: 30-day withdrawal, return freight at your expense (pallet estimate €99–€179)." : "Alleen interesse — geen bestelling of betaling. Bezorgindicatie vasteland; eilanden en bijzondere adressen op offerte. Bij toekomstige aankopen: 30 dagen bedenktijd, retourvracht voor eigen rekening (palletindicatie €99–€179).");
     setElemText("footerColSecurity", t.footerColSecurity);
     setElemText("footerSslNote", t.footerSslNote);
 
@@ -776,8 +823,51 @@
     setElemText("faqQ5", t.faqQ5);
     setElemHtml("faqA5", t.faqA5);
 
+    document.querySelectorAll('[data-nl][data-en]').forEach(el => {
+      el.textContent = el.dataset[currentLang];
+    });
     updateModelConfigurator();
     renderCart();
+    renderAccessoryDetail();
+    if (detailModelKey) {
+      document.getElementById('modelsSectionTitle').textContent = KAMADO_MODELS[activeModelKey].name[currentLang];
+      document.title = KAMADO_MODELS[activeModelKey].name[currentLang] + ' | SmokeyKamado';
+    }
+  }
+
+  function renderAccessoryDetail() {
+    if (!detailAccessory) return;
+    const acc = detailAccessory;
+    const size = document.getElementById('detailAccessorySize').value;
+    const en = currentLang === 'en';
+    document.getElementById('detailAccessoryName').textContent = acc.name[currentLang];
+    document.title = acc.name[currentLang] + ' | SmokeyKamado';
+    document.getElementById('detailAccessoryDesc').textContent = acc.desc[currentLang];
+    document.getElementById('detailAccessoryImage').src = acc.image;
+    document.getElementById('detailAccessoryImage').alt = acc.name[currentLang];
+    const gallery = document.getElementById('detailAccessoryThumbs');
+    gallery.replaceChildren();
+    (acc.thumbs || [acc.image]).forEach((src, index) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'thumb-item' + (index === 0 ? ' active' : '');
+      button.setAttribute('aria-label', (en ? 'Product photo ' : 'Productfoto ') + (index + 1));
+      const image = document.createElement('img');
+      image.src = src; image.alt = acc.name[currentLang] + ' ' + (index + 1); image.loading = 'lazy';
+      button.appendChild(image);
+      button.addEventListener('click', () => {
+        document.getElementById('detailAccessoryImage').src = src;
+        gallery.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === button));
+      });
+      gallery.appendChild(button);
+    });
+    document.getElementById('detailSizeField').hidden = !acc.isSizeDependent;
+    document.getElementById('detailAccessoryFit').textContent = acc.isSizeDependent
+      ? (en ? 'Selected size: ' : 'Gekozen maat: ') + size + '″'
+      : (en ? 'Universal accessory — no size selection needed.' : 'Universeel accessoire — geen maatkeuze nodig.');
+    document.getElementById('detailAccessoryPrice').textContent = formatEur(acc.isSizeDependent ? acc.sizePrices[size] : acc.price);
+    document.getElementById('detailAccessoryIncluded').textContent = acc.id === 'cover'
+      ? (en ? 'Already included in the Premium kamado package. Order here as an extra or replacement.' : 'Al inbegrepen in het Premium kamadopakket. Bestel hier een extra of vervangend exemplaar.') : '';
   }
 
   // --- UI RENDERERS ---
@@ -811,7 +901,7 @@
     if (elWeight) elWeight.textContent = model.weight;
 
     const activeImg = document.getElementById("activeModelImg");
-    if (activeImg) activeImg.src = model.image;
+    if (activeImg) { activeImg.src = model.image; activeImg.alt = mName; }
     const elBadge = document.getElementById("activeModelBadge");
     if (elBadge) elBadge.textContent = mBadge;
 
@@ -840,7 +930,75 @@
     const colorLabel = document.getElementById("selectedColorName");
     if (colorLabel) colorLabel.textContent = colorDisp;
 
+    document.querySelectorAll('.size-tab').forEach(tab => {
+      const selected = tab.dataset.modelKey === activeModelKey;
+      tab.classList.toggle('active', selected);
+      tab.setAttribute('aria-pressed', String(selected));
+    });
     renderAccessories();
+    renderInventory();
+  }
+
+  function quantityFor(key) {
+    return Object.values(inventory?.stock[key] || {}).reduce((sum, qty) => sum + qty, 0);
+  }
+
+  function renderInventory() {
+    const en = currentLang === 'en';
+    const list = document.getElementById('availableColors');
+    list.replaceChildren();
+    const qty = quantityFor(activeModelKey);
+    if (inventory) {
+      for (const [color, quantity] of Object.entries(inventory.stock[activeModelKey] || {})) {
+        if (quantity <= 0) continue;
+        const meta = inventory.colors[color];
+        const item = document.createElement('li');
+        const swatch = document.createElement('span');
+        swatch.className = 'availability-swatch'; swatch.style.backgroundColor = meta.hex;
+        item.append(swatch, document.createTextNode(meta[currentLang] + ' · Pantone ' + meta.pantone));
+        list.appendChild(item);
+      }
+    }
+    document.getElementById('stockMessage').textContent = !inventory
+      ? (en ? 'Checking availability…' : 'Beschikbaarheid controleren…')
+      : qty > 0 ? '' : (en ? 'This model is currently unavailable.' : 'Dit model is momenteel niet beschikbaar.');
+    document.getElementById('addModelToCartBtn').disabled = !inventory || qty <= 0;
+    document.getElementById('directCheckoutBtn').disabled = !inventory || qty <= 0;
+    const is18 = activeModelKey.startsWith('18_');
+    document.getElementById('editionSwitch').hidden = !is18;
+    document.getElementById('basicNotice').hidden = activeModelKey !== '18_basic';
+    document.body.classList.toggle('edition-basic', activeModelKey === '18_basic');
+    document.querySelectorAll('[data-edition]').forEach(link => {
+      link.hidden = Boolean(inventory) && quantityFor(link.dataset.edition) <= 0;
+      if (link.dataset.edition === activeModelKey) link.setAttribute('aria-current', 'page');
+      else link.removeAttribute('aria-current');
+    });
+    document.querySelectorAll('.product-card').forEach(card => {
+      const key = card.dataset.modelKey;
+      const isSmall = key === '18_premium';
+      card.hidden = Boolean(inventory) && (isSmall ? quantityFor('18_basic') + quantityFor('18_premium') : quantityFor(key)) <= 0;
+      if (isSmall) {
+        card.querySelector(".product-edition").firstChild.textContent = "BASIC / PREMIUM ";
+        card.href = inventory && quantityFor('18_premium') <= 0 ? '/kamados/18-basic' : '/kamados/18-premium';
+        card.querySelector('.product-included').textContent = inventory && quantityFor('18_basic') <= 0 ? 'Premium' : inventory && quantityFor('18_premium') <= 0 ? 'Basic' : 'Basic / Premium';
+        card.querySelector('.product-bottom strong').textContent = (en ? 'From ' : 'Vanaf ') + (inventory && quantityFor('18_basic') <= 0 ? '€699' : '€599');
+        card.querySelector('.product-audience').textContent = en ? '2–4 people · Choose your edition' : '2–4 personen · Kies je uitvoering';
+      }
+    });
+  }
+
+  async function refreshInventory() {
+    try {
+      const response = await fetch('/api/inventory', { cache: 'no-store' });
+      if (!response.ok) throw new Error('Inventory unavailable');
+      inventory = await response.json();
+      if (!inventory.stock || !inventory.colors) throw new Error('Invalid inventory');
+      renderInventory();
+    } catch {
+      inventory = null; renderInventory();
+      document.getElementById('stockMessage').textContent = currentLang === 'en'
+        ? 'Availability could not be loaded. Please reload the page.' : 'Beschikbaarheid kon niet worden geladen. Vernieuw de pagina.';
+    }
   }
 
   function renderAccessories() {
@@ -863,37 +1021,15 @@
       const accName = acc.name[currentLang] || acc.name.nl;
       const accDesc = acc.desc[currentLang] || acc.desc.nl;
 
-      const card = document.createElement("div");
+      const card = document.createElement("a");
       card.className = "acc-card";
+      card.href = "/accessories/" + acc.id + (acc.isSizeDependent ? "?size=" + currentSize : "");
       card.innerHTML = `
-        <div class="acc-img-wrap">
-          <img src="${acc.image}" alt="${accName}" class="acc-img">
-          ${sizeBadge}
-        </div>
-        <div class="acc-body">
-          <h4 class="acc-title">${accName}</h4>
-          <p class="acc-desc">${accDesc}</p>
-          <div class="acc-footer">
-            <div class="acc-price">${formatEur(price)}</div>
-            <button class="btn btn-secondary add-acc-btn" data-id="${acc.id}">
-              ${t.addAccBtn}
-            </button>
-          </div>
-        </div>
-      `;
-
-      const addBtn = card.querySelector(".add-acc-btn");
-      addBtn.addEventListener("click", () => {
-        addAccessoryToCart(acc, price, currentSize);
-        addBtn.textContent = t.addedAccBtn;
-        addBtn.classList.add("btn-primary");
-        addBtn.classList.remove("btn-secondary");
-        setTimeout(() => {
-          addBtn.textContent = t.addAccBtn;
-          addBtn.classList.remove("btn-primary");
-          addBtn.classList.add("btn-secondary");
-        }, 1200);
-      });
+        <div class="acc-img-wrap"><img src="${acc.image}" alt="${accName}" class="acc-img">${sizeBadge}</div>
+        <div class="acc-body"><h4 class="acc-title">${accName}</h4><p class="acc-desc">${accDesc}</p>
+          <div class="acc-footer"><div class="acc-price">${formatEur(price)}</div>
+          <span class="btn btn-secondary">${currentLang === 'en' ? 'View details ↗' : 'Bekijk details ↗'}</span></div>
+        </div>`;
 
       grid.appendChild(card);
     });
@@ -908,6 +1044,14 @@
   function loadCart() {
     try {
       cart = JSON.parse(localStorage.getItem("craft_nl_cart") || "[]");
+      if (!Array.isArray(cart)) cart = [];
+      cart.forEach(item => {
+        const product = item.type === 'kamado' ? KAMADO_MODELS[item.modelKey] : ACCESSORIES.find(a => a.id === item.accessoryId);
+        if (product) item.image = product.image;
+        if (item.type === 'kamado') { item.colorId = null; item.colorName = 'Not selected'; item.colorDisplayName = currentLang === 'en' ? 'Colour not selected' : 'Kleur niet gekozen'; }
+        if (typeof item.name === "string") item.name = item.name.replace(/CraftKamado|KundiKamado/g, "SmokeyKamado");
+        if (typeof item.colorDisplayName === "string") item.colorDisplayName = item.colorDisplayName.replace("Craft ", "Smokey ");
+      });
     } catch (e) {
       cart = [];
     }
@@ -915,7 +1059,7 @@
 
   function addModelToCart() {
     const model = KAMADO_MODELS[activeModelKey];
-    if (!model) return;
+    if (!model || !inventory || quantityFor(activeModelKey) <= 0) return;
 
     const mName = model.name[currentLang] || model.name.nl;
     const cDisp = currentColor.displayName[currentLang] || currentColor.displayName.nl;
@@ -989,6 +1133,7 @@
       document.getElementById("cartKamadoSubtotal").textContent = formatEur(0);
       document.getElementById("cartAccSubtotal").textContent = formatEur(0);
       document.getElementById("cartTotal").textContent = formatEur(0);
+      document.getElementById("cartFreeLabel").textContent = "—";
       document.getElementById("goToCheckoutBtn").disabled = true;
       return;
     }
@@ -1030,7 +1175,8 @@
       listEl.appendChild(itemEl);
     });
 
-    const total = kamadoSubtotal + accSubtotal;
+    const total = kamadoSubtotal + accSubtotal + shippingAmount(cart);
+    document.getElementById("cartFreeLabel").textContent = formatEur(shippingAmount(cart));
     document.getElementById("cartKamadoSubtotal").textContent = formatEur(kamadoSubtotal);
     document.getElementById("cartAccSubtotal").textContent = formatEur(accSubtotal);
     document.getElementById("cartTotal").textContent = formatEur(total);
@@ -1060,7 +1206,8 @@
 
     const kamadoSub = cart.filter(i => i.type === "kamado").reduce((s, i) => s + (i.price * i.qty), 0);
     const accSub = cart.filter(i => i.type === "accessory").reduce((s, i) => s + (i.price * i.qty), 0);
-    const total = kamadoSub + accSub;
+    const total = kamadoSub + accSub + shippingAmount(cart);
+    document.getElementById("chkSumFreeLabel").textContent = formatEur(shippingAmount(cart));
 
     document.getElementById("checkoutModelSummary").textContent = modelSummaryText;
     document.getElementById("checkoutKamadoPrice").textContent = formatEur(kamadoSub);
@@ -1132,7 +1279,7 @@
     const kamadoItem = cart.find(i => i.type === "kamado") || {};
     const kamadoSub = cart.filter(i => i.type === "kamado").reduce((s, i) => s + (i.price * i.qty), 0);
     const accSub = cart.filter(i => i.type === "accessory").reduce((s, i) => s + (i.price * i.qty), 0);
-    const totalAmount = kamadoSub + accSub;
+    const totalAmount = kamadoSub + accSub + shippingAmount(cart);
 
     const paymentOpt = document.querySelector(`input[name="payment_method"]:checked`)?.value || "ideal";
 
@@ -1149,10 +1296,10 @@
       },
       paymentMethod: paymentOpt,
       source: trafficSource,
-      landingPage: window.location.pathname + window.location.search,
-      initialColor,
+      landingPage,
+      initialColor: "Not selected",
       finalColor: kamadoItem.colorName || currentColor.name,
-      modelName: kamadoItem.name || `${activeModelKey}″ CraftKamado`,
+      modelName: kamadoItem.name || `${activeModelKey}″ SmokeyKamado`,
       sizeInch: kamadoItem.sizeInch || "23",
       items: cart,
       accessories: cart.filter(i => i.type === "accessory"),
@@ -1242,37 +1389,30 @@
       lang: currentLang
     });
 
-    // 3. Size Tabs
-    const tabs = document.querySelectorAll(".size-tab");
-    tabs.forEach(tab => {
-      tab.addEventListener("click", () => {
-        tabs.forEach(t => t.classList.remove("active"));
-        tab.classList.add("active");
-        activeModelKey = tab.getAttribute("data-model-key");
-        updateModelConfigurator();
+    // Product cards navigate to their own detail pages.
+    if (detailAccessory) {
+      const sizeInput = document.getElementById('detailAccessorySize');
+      const requestedSize = new URLSearchParams(location.search).get('size');
+      sizeInput.value = ['18','21','23','27'].includes(requestedSize) ? requestedSize : '23';
+      sizeInput.addEventListener('change', () => {
+        const url = new URL(location.href);
+        url.searchParams.set('size', sizeInput.value);
+        history.replaceState(null, '', url);
+        renderAccessoryDetail();
       });
-    });
-
-    // 4. Color dots
-    const dots = document.querySelectorAll(".color-dot");
-    dots.forEach(dot => {
-      dot.addEventListener("click", () => {
-        dots.forEach(d => d.classList.remove("active"));
-        dot.classList.add("active");
-
-        const cid = dot.getAttribute("data-color-id");
-        const cObj = COLOR_OPTIONS.find(c => c.id === cid) || {
-          id: cid,
-          name: dot.getAttribute("data-color-name"),
-          displayName: { nl: dot.getAttribute("data-display-name"), en: dot.getAttribute("data-display-name") }
-        };
-
-        currentColor = cObj;
-        const colorLabel = document.getElementById("selectedColorName");
-        if (colorLabel) colorLabel.textContent = cObj.displayName[currentLang] || cObj.displayName.nl || cObj.name;
-
-        trackEvent("select_color", { color: currentColor.name });
+      document.getElementById('detailAccessoryAdd').addEventListener('click', () => {
+        const size = sizeInput.value;
+        const acc = detailAccessory;
+        addAccessoryToCart(acc, acc.isSizeDependent ? acc.sizePrices[size] : acc.price, acc.isSizeDependent ? size : null);
+        openCart();
       });
+    }
+    const rail = document.getElementById("sizeTabs");
+    document.querySelectorAll('[data-slide]').forEach(button => {
+      button.addEventListener('click', () => rail.scrollBy({
+        left: Number(button.dataset.slide) * (rail.querySelector('.size-tab').offsetWidth + 20),
+        behavior: 'smooth'
+      }));
     });
 
     // 5. Cart Drawer Triggers
@@ -1283,6 +1423,7 @@
     // 6. Add to cart actions
     document.getElementById("addModelToCartBtn")?.addEventListener("click", addModelToCart);
     document.getElementById("directCheckoutBtn")?.addEventListener("click", () => {
+      if (!inventory || quantityFor(activeModelKey) <= 0) return;
       addModelToCart();
       openCheckout();
     });
@@ -1310,5 +1451,9 @@
 
     // Set initial language & render
     setLanguage(currentLang);
+    refreshInventory();
+    window.addEventListener('pageshow', refreshInventory);
+    setInterval(() => { if (!document.hidden) refreshInventory(); }, 60000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshInventory(); });
   });
 })();

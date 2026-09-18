@@ -21,13 +21,14 @@ async function sendPurchaseIntentNotification(env, intent) {
   });
 
   const customerEmail = intent.customer?.email || intent.email || "";
-  const customerName = intent.customer?.name || intent.name || "CraftKamado Customer";
-  const subject = "New NL Purchase Intent – " + totalFormatted + " (" + (customerEmail || "Geen email") + ")";
+  const customerName = intent.customer?.name || intent.name || "SmokeyKamado Customer";
+  const subject = "SmokeyKamado – New NL Purchase Intent – " + totalFormatted + " (" + (customerEmail || "Geen email") + ")";
 
   const plainText = [
-    "=== NIEUWE NEDERLANDSE AANKOOPINTENTIE (MARKET TEST) ===",
+    "=== SMOKEYKAMADO – NIEUWE NEDERLANDSE AANKOOPINTENTIE (MARKET TEST) ===",
     "",
-    "Totaalbedrag: " + totalFormatted,
+    "Totaalbedrag (indicatief): " + totalFormatted,
+    "Bezorging (indicatief): €" + Number(intent.shippingAmountEur || 0).toLocaleString("nl-NL"),
     "Kamado model: " + (intent.modelName || "Kamado"),
     "Gekozen kleur: " + (intent.finalColor || intent.colorName || "Black"),
     "Kamado prijs: " + kamadoFormatted,
@@ -48,7 +49,7 @@ async function sendPurchaseIntentNotification(env, intent) {
     "Sessie ID: " + (intent.sessionId || "-"),
     "Tijdstip: " + new Date().toISOString(),
     "",
-    "Bekijk live dashboard: https://nl-kamado.ferkomes.workers.dev/admin/market-test"
+    "Bekijk live dashboard: " + (env.SITE_URL || "https://nl-kamado.ferkomes.workers.dev").replace(/\/+$/, "") + "/admin/market-test"
   ].join("\n");
 
   try {

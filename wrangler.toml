@@ -1,5 +1,6 @@
 name = "nl-kamado"
 main = "worker.js"
+workers_dev = true
 compatibility_date = "2024-09-01"
 
 # Cloudflare D1 Database binding
@@ -19,7 +20,8 @@ binding = "MAIL_SENDER"
 service = "mail-sender"
 
 [vars]
+SITE_URL = "https://nl-kamado.ferkomes.workers.dev"
 APP_ENV = "production"
-STORE_NAME = "CraftKamado Nederland"
+STORE_NAME = "SmokeyKamado Nederland"
 CURRENCY = "EUR"
 NOTIFY_EMAIL = "ferkomes@gmail.com"

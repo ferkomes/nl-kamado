@@ -1,4 +1,4 @@
--- CraftKamado Netherlands Market Demand Test Database Schema
+-- SmokeyKamado Netherlands Market Demand Test Database Schema
 
 CREATE TABLE IF NOT EXISTS market_sessions (
   session_id TEXT PRIMARY KEY,
@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS purchase_intents (
   accessories_json TEXT,
   kamado_price_eur REAL NOT NULL DEFAULT 0,
   accessories_price_eur REAL NOT NULL DEFAULT 0,
+  shipping_amount_eur REAL NOT NULL DEFAULT 0,
   total_amount_eur REAL NOT NULL DEFAULT 0,
   payment_method_intent TEXT,
   notification_sent INTEGER DEFAULT 0,

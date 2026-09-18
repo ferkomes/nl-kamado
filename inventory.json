@@ -1,0 +1,18 @@
+{
+  "colors": {
+    "Black": { "pantone": "6 C", "hex": "#171717", "nl": "Zwart", "en": "Black" },
+    "Red": { "pantone": "188 C", "hex": "#781d2e", "nl": "Bordeauxrood", "en": "Red" },
+    "Beige": { "pantone": "468 C", "hex": "#d6cbb6", "nl": "Beige", "en": "Beige" },
+    "Blue": { "pantone": "281 C", "hex": "#1b3f75", "nl": "Blauw", "en": "Blue" },
+    "Green": { "pantone": "3308 C", "hex": "#235338", "nl": "Groen", "en": "Green" },
+    "Orange": { "pantone": "1665 C", "hex": "#df5417", "nl": "Oranje", "en": "Orange" },
+    "Yellow": { "pantone": "124 C", "hex": "#dca326", "nl": "Geel", "en": "Yellow" }
+  },
+  "stock": {
+    "18_basic": { "Black": 6, "Red": 6 },
+    "18_premium": { "Black": 6, "Red": 6 },
+    "21": { "Black": 21, "Red": 6, "Beige": 12, "Blue": 6, "Green": 6, "Orange": 3, "Yellow": 3 },
+    "23": { "Black": 11, "Red": 11, "Beige": 8, "Blue": 2, "Green": 3, "Orange": 2, "Yellow": 3 },
+    "27": { "Black": 7, "Red": 5, "Beige": 2, "Blue": 2, "Green": 2 }
+  }
+}

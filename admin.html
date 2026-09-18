@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CraftKamado NL | Market Demand Test Dashboard</title>
+  <title>SmokeyKamado NL | Market Demand Test Dashboard</title>
   <link rel="icon" type="image/png" href="/assets/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -237,7 +237,7 @@
   <div id="dashboardContent">
     <div class="header-bar">
       <div class="brand-area">
-        <h1>CraftKamado Netherlands</h1>
+        <h1>SmokeyKamado Netherlands</h1>
         <span class="brand-tag">Market Demand Analytics</span>
       </div>
       <div class="header-actions">
@@ -388,6 +388,12 @@
         </table>
       </div>
     </div>
+    <section class="card" style="margin-top:2rem;padding:1.5rem;">
+      <h2>Inventory — sizes, editions &amp; colours</h2>
+      <p>Set a quantity to 0 to hide that colour. A sold-out edition is unavailable to submit. Purchase intents do not reduce stock.</p>
+      <p id="inventoryStatus" role="status"></p>
+      <div style="overflow-x:auto;"><table class="data-table" id="inventoryTable"><thead><tr><th>Model</th><th>Colour / Pantone</th><th>Quantity</th><th></th></tr></thead><tbody></tbody></table></div>
+    </section>
   </div>
 
   <script src="/admin-test.js"></script>

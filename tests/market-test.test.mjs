@@ -46,7 +46,7 @@ let db;
 let mockEnv;
 let workerModule;
 
-describe('CraftKamado Netherlands Market Test Suite', () => {
+describe('SmokeyKamado Netherlands Market Test Suite', () => {
   before(async () => {
     const schemaSql = fs.readFileSync(path.join(__dirname, '../schema.sql'), 'utf8');
     db = createMockD1();
@@ -55,7 +55,8 @@ describe('CraftKamado Netherlands Market Test Suite', () => {
     mockEnv = {
       DB: db,
       ADMIN_PASSWORD: 'test-admin-pwd',
-      STORE_NAME: 'CraftKamado Nederland'
+      SITE_URL: 'https://smokeykamado.nl',
+      STORE_NAME: 'SmokeyKamado Nederland'
     };
 
     workerModule = (await import('../worker.js')).default;
@@ -122,7 +123,7 @@ describe('CraftKamado Netherlands Market Test Suite', () => {
 
     test('POST /api/market-test/cart-update registers cart reach & abandoned item', async () => {
       const items = [
-        { id: 'kamado_23', type: 'kamado', name: 'CraftKamado 23″', price: 1019, qty: 1 },
+        { id: 'kamado_23', type: 'kamado', name: 'SmokeyKamado 23″', price: 1019, qty: 1 },
         { id: 'acc_rotisserie_23', type: 'accessory', name: 'Rotisserie (23″)', price: 159, qty: 1 }
       ];
 
@@ -224,7 +225,7 @@ describe('CraftKamado Netherlands Market Test Suite', () => {
       assert.equal(intentRow.final_color, 'Blue');
       assert.equal(intentRow.source, 'Facebook Ad');
       assert.equal(intentRow.postal_code, '1015 CR');
-      assert.equal(intentRow.total_amount_eur, 1247);
+      assert.equal(intentRow.total_amount_eur, 1346);
 
       const session = await db.prepare('SELECT * FROM market_sessions WHERE session_id = ?').bind(sessionId).first();
       assert.equal(session.reached_intent, 1);
@@ -259,7 +260,7 @@ describe('CraftKamado Netherlands Market Test Suite', () => {
       assert.equal(stats.kpis.checkout, 1);
       assert.equal(stats.kpis.purchaseIntent, 1);
       assert.equal(stats.kpis.conversionPct, 1.0);
-      assert.equal(stats.kpis.potentialRevenue, 1247);
+      assert.equal(stats.kpis.potentialRevenue, 1346);
 
       // Models breakdown: 18 Basic, 18 Premium, 21, 23, 27
       assert.ok(stats.models);
@@ -295,7 +296,7 @@ describe('CraftKamado Netherlands Market Test Suite', () => {
       const text = await res.text();
       assert.ok(text.includes('pieter@example.nl'));
       assert.ok(text.includes('Facebook Ad'));
-      assert.ok(text.includes('1247'));
+      assert.ok(text.includes('1346'));
     });
   });
 
@@ -314,7 +315,7 @@ describe('CraftKamado Netherlands Market Test Suite', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sessionId: abSessionId,
-          items: [{ id: 'kamado_27', name: 'CraftKamado 27″', price: 1319, qty: 1 }],
+          items: [{ id: 'kamado_27', name: 'SmokeyKamado 27″', price: 1319, qty: 1 }],
           totalAmount: 1319,
           lastStep: 'checkout',
           email: 'abandoned_user@example.nl',
@@ -334,14 +335,14 @@ describe('CraftKamado Netherlands Market Test Suite', () => {
   });
 
   describe('6. Web Page Routing', () => {
-    test('GET / serves Dutch storefront HTML without test indicators', async () => {
+    test('GET / serves Dutch storefront with non-binding interest submission', async () => {
       const req = new Request('http://localhost/', { method: 'GET' });
       const res = await workerModule.fetch(req, mockEnv);
       assert.equal(res.status, 200);
       assert.ok(res.headers.get('Content-Type').includes('text/html'));
       const body = await res.text();
-      assert.ok(body.includes('CraftKamado Nederland'));
-      assert.ok(body.includes('Doorgaan naar betaling'));
+      assert.ok(body.includes('SmokeyKamado Nederland'));
+      assert.ok(body.includes('Interesse vrijblijvend versturen'));
       assert.ok(!body.includes('Marktintroductie:'));
     });
 
@@ -428,7 +429,7 @@ describe('CraftKamado Netherlands Market Test Suite', () => {
       const text = await res.text();
       assert.ok(text.includes('User-agent: *'));
       assert.ok(text.includes('Disallow: /admin'));
-      assert.ok(text.includes('Sitemap: https://nl-kamado.ferkomes.workers.dev/sitemap.xml'));
+      assert.ok(text.includes('Sitemap: https://smokeykamado.nl/sitemap.xml'));
     });
 
     test('GET /sitemap.xml serves valid XML sitemap with hreflangs', async () => {
@@ -437,7 +438,7 @@ describe('CraftKamado Netherlands Market Test Suite', () => {
       assert.equal(res.status, 200);
       assert.ok(res.headers.get('Content-Type').includes('application/xml'));
       const text = await res.text();
-      assert.ok(text.includes('<loc>https://nl-kamado.ferkomes.workers.dev/</loc>'));
+      assert.ok(text.includes('<loc>https://smokeykamado.nl/</loc>'));
       assert.ok(text.includes('hreflang="nl"'));
       assert.ok(text.includes('hreflang="en"'));
     });
@@ -447,7 +448,7 @@ describe('CraftKamado Netherlands Market Test Suite', () => {
       const res = await workerModule.fetch(req, mockEnv);
       assert.equal(res.status, 200);
       const body = await res.text();
-      assert.ok(body.includes('CraftKamado® Nederland | Premium All-Inclusive Kamado BBQ'));
+      assert.ok(body.includes('SmokeyKamado Nederland | Premium All-Inclusive Kamado BBQ'));
       assert.ok(body.includes('application/ld+json'));
       assert.ok(body.includes('"@type": "FAQPage"'));
       assert.ok(body.includes('"@type": "Product"'));
@@ -500,7 +501,7 @@ describe('Regression: isolated owner notifications and reliable demand counts', 
     const result = await (await submit(payload())).json();
     assert.equal(result.ok, true);
     const row = await env.DB.prepare('SELECT * FROM purchase_intents WHERE id = ?').bind(result.intentId).first();
-    assert.equal(row.total_amount_eur, 1019);
+    assert.equal(row.total_amount_eur, 1118);
     assert.equal(row.accessories_price_eur, 0);
     assert.equal(row.final_color, 'Blue');
     assert.equal(row.notification_sent, 0);
@@ -574,4 +575,128 @@ describe('Regression: isolated owner notifications and reliable demand counts', 
     assert.equal((await send({}, payload())).error, 'MAIL_NOT_CONFIGURED');
     assert.equal(calls.length, 3);
   });
+});
+
+
+test('test domain works with SmokeyKamado branding before DNS migration', async () => {
+  const worker = (await import('../worker.js')).default;
+  const env = { SITE_URL: 'https://nl-kamado.ferkomes.workers.dev' };
+  for (const route of ['/', '/robots.txt', '/sitemap.xml']) {
+    const response = await worker.fetch(new Request('https://nl-kamado.ferkomes.workers.dev' + route), env);
+    const text = await response.text();
+    assert.equal(response.status, 200);
+    assert.ok(text.includes(env.SITE_URL));
+    assert.ok(!text.includes('https://smokeykamado.nl'));
+    if (route === '/') assert.ok(text.includes('SmokeyKamado'));
+  }
+});
+
+test('generated storefront scripts parse and premium collection has four sizes and complete equipment', async () => {
+  const vm = await import('node:vm');
+  const worker = (await import('../worker.js')).default;
+  const html = await (await worker.fetch(new Request('https://example.test/'), {})).text();
+  for (const match of html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)) {
+    if (match[1].includes('ld+json')) JSON.parse(match[2]);
+    else new vm.Script(match[2]);
+  }
+  assert.equal((html.match(/class="size-tab product-card/g) || []).length, 4);
+  assert.equal((html.match(/class="equipment-number"/g) || []).length, 15);
+  assert.ok(html.indexOf('id="sizeTabs"') < html.indexOf('id="configCard"'));
+});
+
+test('every kamado and accessory has a directly accessible product page with its own metadata', async () => {
+  const worker = (await import('../worker.js')).default;
+  const vm = await import('node:vm');
+  const paths = ['/kamados/18-premium', '/kamados/21', '/kamados/23', '/kamados/27',
+    '/accessories/cover', '/accessories/rotisserie', '/accessories/cast-iron-halfmoon',
+    '/accessories/pizza-stone', '/accessories/electric-starter', '/accessories/bbq-gloves'];
+  for (const path of paths) {
+    const response = await worker.fetch(new Request('https://example.test' + path), {});
+    assert.equal(response.status, 200);
+    const html = await response.text();
+    assert.ok(html.includes('rel="canonical" href="https://example.test' + path + '"'));
+    assert.ok(html.includes('class="page-' + (path.startsWith('/kamados') ? 'kamado' : 'accessory') + '"'));
+    const schema = JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
+    assert.equal(schema.url, 'https://example.test' + path);
+    for (const match of html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)) {
+      if (!match[1].includes('ld+json')) new vm.Script(match[2]);
+    }
+  }
+  const missing = await worker.fetch(new Request('https://example.test/kamados/99'), {});
+  assert.equal(missing.status, 404);
+  const sitemap = await (await worker.fetch(new Request('https://example.test/sitemap.xml'), {})).text();
+  for (const path of paths) assert.ok(sitemap.includes('https://example.test' + path));
+});
+
+test('inventory imports 139 units once, protects edits, hides sold-out variants and does not consume stock for intents', async () => {
+  const worker = (await import('../worker.js')).default;
+  const env = { DB: createMockD1(), ADMIN_PASSWORD: 'inventory-test' };
+  const get = async () => (await worker.fetch(new Request('https://example.test/api/inventory'), env)).json();
+  const update = (body, authorized = true) => worker.fetch(new Request('https://example.test/api/inventory', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', ...(authorized ? { Authorization: 'Bearer inventory-test' } : {}) }, body: JSON.stringify(body)
+  }), env);
+  let stock = (await get()).stock;
+  assert.equal(Object.values(stock).flatMap(Object.values).reduce((sum, n) => sum + n, 0), 139);
+  assert.deepEqual(stock['18_basic'], { Black: 6, Red: 6 });
+  assert.equal(stock['27'].Orange, undefined);
+  assert.equal((await update({ modelKey: '18_basic', color: 'Red', quantity: 0, previousQuantity: 6 }, false)).status, 401);
+  assert.equal((await update({ modelKey: '18_basic', color: 'Red', quantity: -1, previousQuantity: 6 })).status, 400);
+  assert.equal((await update({ modelKey: '18_basic', color: 'Red', quantity: 0, previousQuantity: 6 })).status, 200);
+  assert.equal((await update({ modelKey: '18_basic', color: 'Red', quantity: 4, previousQuantity: 6 })).status, 409);
+  assert.equal((await get()).stock['18_basic'].Red, 0, 'reload does not restore initial stock');
+  const payload = { sessionId: 'inventory-lead', customer: { email: 'inventory@example.nl' }, sizeInch: '18',
+    items: [{ id: 'kamado_18_basic', modelKey: '18_basic', type: 'kamado', name: '18 Basic', price: 599, qty: 1, colorName: 'Not selected' }] };
+  const submit = () => worker.fetch(new Request('https://example.test/api/market-test/purchase-intent', { method: 'POST', body: JSON.stringify(payload) }), env);
+  assert.equal((await submit()).status, 200);
+  assert.equal((await get()).stock['18_basic'].Black, 6, 'demand test does not decrement stock');
+  const lead = await env.DB.prepare('SELECT final_color FROM purchase_intents WHERE session_id = ?').bind('inventory-lead').first();
+  assert.equal(lead.final_color, 'Not selected');
+  await update({ modelKey: '18_basic', color: 'Black', quantity: 0, previousQuantity: 6 });
+  payload.sessionId = 'sold-out';
+  assert.equal((await submit()).status, 400, 'old carts cannot submit a sold-out model');
+  const basicPage = await worker.fetch(new Request('https://example.test/kamados/18-basic'), env);
+  assert.equal(basicPage.status, 200);
+  assert.match(await basicPage.text(), /SmokeyKamado 18″ Basic/);
+});
+
+test('support links serve both languages without a database or real purchase promises', async () => {
+  const worker = (await import('../worker.js')).default;
+  const home = await (await worker.fetch(new Request('https://example.test/'), {})).text();
+  assert.match(home, /mailto:info@smokeykamado.nl/);
+  for (const route of ['shipping', 'warranty', 'returns']) {
+    assert.match(home, new RegExp('href="/support/' + route + '"'));
+    for (const lang of ['nl', 'en']) {
+      const response = await worker.fetch(new Request(`https://example.test/support/${route}?lang=${lang}`), {});
+      assert.equal(response.status, 200);
+      const html = await response.text();
+      assert.match(html, new RegExp('<html lang="' + lang + '"'));
+      assert.match(html, /info@smokeykamado.nl/);
+      assert.match(html, /geen bestellingen|no orders/);
+    }
+  }
+  assert.doesNotMatch(home, /Gratis Bezorging|Free insured pallet|levenslange garantie/);
+});
+
+test('delivery rates are server-calculated for 18/27 and accessories, included in stored totals and email', async () => {
+  const worker = (await import('../worker.js')).default;
+  const db = createMockD1();
+  // Exercise an existing database upgrade without discarding an existing record.
+  db._sqlite.exec(`CREATE TABLE purchase_intents (id TEXT PRIMARY KEY, session_id TEXT, created_at TEXT, email TEXT, name TEXT, phone TEXT, postal_code TEXT, city TEXT, country TEXT, source TEXT, landing_page TEXT, initial_color TEXT, final_color TEXT, model_name TEXT, size_inch TEXT, items_json TEXT, accessories_json TEXT, kamado_price_eur REAL, accessories_price_eur REAL, total_amount_eur REAL, payment_method_intent TEXT, notification_sent INTEGER, notification_error TEXT);
+  INSERT INTO purchase_intents(id,total_amount_eur) VALUES('legacy',42);`);
+  for (const [key, size, price, shipping] of [['18_basic','18',599,99], ['27','27',1319,129], ['accessory','',49,7.95]]) {
+    let notification;
+    const env = { DB: db, MAIL_SENDER: { fetch: async (_url, options) => {
+      notification = JSON.parse(options.body);
+      return Response.json({success:true,recipient:'ferkomes@gmail.com'});
+    } } };
+    const item = {id:key,modelKey:key,type:size ? 'kamado' : 'accessory',name:key,sizeInch:size,price,qty:1};
+    const response = await worker.fetch(new Request('https://example.test/api/market-test/purchase-intent', {method:'POST',body:JSON.stringify({sessionId:key,customer:{email:'buyer@example.nl'},items:[item],shippingAmountEur:0,totalAmountEur:1})}),env);
+    assert.equal(response.status,200,await response.clone().text());
+    const row = db._sqlite.prepare('SELECT * FROM purchase_intents WHERE session_id=?').get(key);
+    assert.equal(row.shipping_amount_eur,shipping);
+    assert.equal(row.total_amount_eur,price+shipping);
+    assert.match(notification.message,/Bezorging \(indicatief\): €/);
+    assert.equal(notification.targetEmail,'ferkomes@gmail.com');
+  }
+  assert.equal(db._sqlite.prepare("SELECT total_amount_eur FROM purchase_intents WHERE id='legacy'").get().total_amount_eur,42);
 });

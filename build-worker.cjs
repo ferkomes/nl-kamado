@@ -1,11 +1,16 @@
-// Build script to generate worker.js for KundiKamado Netherlands Market Test
+// Build script to generate worker.js for SmokeyKamado Netherlands Market Test
 const fs = require('fs');
 const path = require('path');
 
 const indexHtml = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
+const inventorySeed = JSON.parse(fs.readFileSync(path.join(__dirname, 'inventory.json'), 'utf8'));
+const inventoryCode = fs.readFileSync(path.join(__dirname, 'server/inventory-service.js'), 'utf8');
 const styleCss = fs.readFileSync(path.join(__dirname, 'style.css'), 'utf8');
-const appJs = fs.readFileSync(path.join(__dirname, 'app.js'), 'utf8');
+const shippingCode = fs.readFileSync(path.join(__dirname, 'shipping-policy.js'), 'utf8');
+const appJs = fs.readFileSync(path.join(__dirname, 'app.js'), 'utf8').replace('/* SHIPPING_POLICY */', () => shippingCode);
+const supportCode = fs.readFileSync(path.join(__dirname, 'server/support-pages.js'), 'utf8');
 const adminHtml = fs.readFileSync(path.join(__dirname, 'admin.html'), 'utf8');
+const brandLogo = fs.readFileSync(path.join(__dirname, 'assets/smokey-logo.svg'), 'utf8');
 const adminJs = fs.readFileSync(path.join(__dirname, 'admin-test.js'), 'utf8');
 
 // Inline style and script for maximum performance and zero extra requests
@@ -16,6 +21,19 @@ const embeddedHtml = indexHtml
   .replace(/<link rel="stylesheet" href="style\.css">/, () => '<style>\n' + styleCss + '\n</style>')
   .replace(/<script src="app\.js"><\/script>/, () => '<script>\n' + appJs + '\n</script>');
 
+// Read the storefront catalog once at build time to keep product routes in sync.
+const vm = require('vm');
+const catalogSource = appJs.slice(appJs.indexOf('  const KAMADO_MODELS'), appJs.indexOf('  // --- I18N DICTIONARY'));
+const catalog = vm.runInNewContext(catalogSource + '\n({ KAMADO_MODELS, ACCESSORIES })');
+const productPages = {};
+for (const key of ['18_basic', '18_premium', '21', '23', '27']) {
+  productPages['/kamados/' + key.replace('_', '-')] = { ...catalog.KAMADO_MODELS[key], type: 'kamado' };
+}
+for (const accessory of catalog.ACCESSORIES) {
+  productPages['/accessories/' + accessory.id] = { ...accessory, type: 'accessory' };
+}
+const storefrontPagesCode = fs.readFileSync(path.join(__dirname, 'server/storefront-pages.js'), 'utf8');
+
 const emailServiceCode = fs.readFileSync(path.join(__dirname, 'server/email-service.js'), 'utf8')
   .replace(/module\.exports\s*=\s*\{[^}]*\};?/g, '');
 
@@ -24,7 +42,7 @@ const marketServiceCode = fs.readFileSync(path.join(__dirname, 'server/market-se
   .replace(/module\.exports\s*=\s*\{[^}]*\};?/g, '');
 
 const workerTemplate = `/**
- * KundiKamado Netherlands - Cloudflare Worker
+ * SmokeyKamado Netherlands - Cloudflare Worker
  * - Serves 100% Dutch Storefront & Market-Test Admin Dashboard
  * - Comprehensive Funnel Tracking (visitor -> cart -> checkout -> purchase_intent)
  * - R2 Asset streaming
@@ -32,8 +50,16 @@ const workerTemplate = `/**
  */
 
 const HTML_CONTENT = ${JSON.stringify(embeddedHtml)};
+const INVENTORY_SEED = ${JSON.stringify(inventorySeed)};
+${shippingCode}
+${supportCode}
+${inventoryCode}
+const PRODUCT_PAGES = ${JSON.stringify(productPages)};
+${storefrontPagesCode}
 const ADMIN_HTML_CONTENT = ${JSON.stringify(embeddedAdminHtml)};
 const ADMIN_JS_CONTENT = ${JSON.stringify(adminJs)};
+
+const BRAND_LOGO = ${JSON.stringify(brandLogo)};
 
 const MIME_TYPES = {
   webp: "image/webp",
@@ -66,9 +92,23 @@ export default {
     const url = new URL(request.url);
     const pathname = url.pathname;
     const method = request.method;
+    const siteUrl = (env.SITE_URL || url.origin).replace(/\\/+$/, '');
+    const withSiteUrl = content => content.replaceAll('https://smokeykamado.nl', siteUrl);
     // Personal lead data and admin credentials must not be cached.
     const privateHeaders = { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' };
 
+
+    if (pathname === '/api/inventory') {
+      try {
+        if (method === 'GET') return Response.json(await getInventory(env.DB), { headers: { 'Cache-Control': 'no-store' } });
+        if (method === 'POST') {
+          if (!authenticateAdmin(request, env)) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+          const result = await updateInventory(env.DB, await request.json());
+          return Response.json(result, { status: result.conflict ? 409 : 200, headers: { 'Cache-Control': 'no-store' } });
+        }
+        return new Response('Method not allowed', { status: 405 });
+      } catch (error) { return Response.json({ error: error.message }, { status: method === 'GET' ? 503 : 400 }); }
+    }
 
     // CORS preflight
     if (method === 'OPTIONS') {
@@ -89,10 +129,10 @@ export default {
         'Disallow: /admin',
         'Disallow: /api/',
         '',
-        'Sitemap: https://nl-kamado.ferkomes.workers.dev/sitemap.xml',
+        'Sitemap: https://smokeykamado.nl/sitemap.xml',
         ''
       ].join('\\n');
-      return new Response(robotsTxt, {
+      return new Response(withSiteUrl(robotsTxt), {
         headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'public, max-age=86400' }
       });
     }
@@ -104,36 +144,47 @@ export default {
         '<?xml version="1.0" encoding="UTF-8"?>',
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
         '  <url>',
-        '    <loc>https://nl-kamado.ferkomes.workers.dev/</loc>',
-        '    <xhtml:link rel="alternate" hreflang="nl" href="https://nl-kamado.ferkomes.workers.dev/?lang=nl"/>',
-        '    <xhtml:link rel="alternate" hreflang="en" href="https://nl-kamado.ferkomes.workers.dev/?lang=en"/>',
-        '    <xhtml:link rel="alternate" hreflang="x-default" href="https://nl-kamado.ferkomes.workers.dev/"/>',
+        '    <loc>https://smokeykamado.nl/</loc>',
+        '    <xhtml:link rel="alternate" hreflang="nl" href="https://smokeykamado.nl/?lang=nl"/>',
+        '    <xhtml:link rel="alternate" hreflang="en" href="https://smokeykamado.nl/?lang=en"/>',
+        '    <xhtml:link rel="alternate" hreflang="x-default" href="https://smokeykamado.nl/"/>',
         '    <lastmod>' + nowIso + '</lastmod>',
         '    <changefreq>daily</changefreq>',
         '    <priority>1.0</priority>',
         '  </url>',
         '  <url>',
-        '    <loc>https://nl-kamado.ferkomes.workers.dev/?lang=nl</loc>',
+        '    <loc>https://smokeykamado.nl/?lang=nl</loc>',
         '    <lastmod>' + nowIso + '</lastmod>',
         '    <changefreq>daily</changefreq>',
         '    <priority>0.9</priority>',
         '  </url>',
         '  <url>',
-        '    <loc>https://nl-kamado.ferkomes.workers.dev/?lang=en</loc>',
+        '    <loc>https://smokeykamado.nl/?lang=en</loc>',
         '    <lastmod>' + nowIso + '</lastmod>',
         '    <changefreq>daily</changefreq>',
         '    <priority>0.8</priority>',
         '  </url>',
         '</urlset>'
       ].join('\\n');
-      return new Response(sitemapXml, {
+      return new Response(withSiteUrl(sitemapXml.replace('</urlset>', Object.keys(PRODUCT_PAGES).map(path => '<url><loc>https://smokeykamado.nl' + path + '</loc></url>').join('') + '</urlset>')), {
         headers: { 'Content-Type': 'application/xml; charset=utf-8', 'Cache-Control': 'public, max-age=86400' }
+      });
+    }
+
+    if (Object.prototype.hasOwnProperty.call(SUPPORT_PAGES, pathname)) {
+      return new Response(supportPageHtml(pathname, url.searchParams.get('lang')), { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' } });
+    }
+
+    const productPath = pathname.replace(/\\/$/, '');
+    if (Object.prototype.hasOwnProperty.call(PRODUCT_PAGES, productPath)) {
+      return new Response(withSiteUrl(productPageHtml(HTML_CONTENT, PRODUCT_PAGES[productPath], productPath)), {
+        headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' }
       });
     }
 
     // 1. Static Storefront HTML
     if (pathname === '/' || pathname === '/index.html') {
-      return new Response(HTML_CONTENT, {
+      return new Response(withSiteUrl(HTML_CONTENT), {
         headers: {
           'Content-Type': 'text/html; charset=utf-8',
           'Cache-Control': 'no-cache'
@@ -157,6 +208,12 @@ export default {
           'Content-Type': 'application/javascript; charset=utf-8',
           'Cache-Control': 'public, max-age=3600'
         }
+      });
+    }
+
+    if (pathname === '/assets/smokey-logo.svg' || pathname === '/favicon.ico') {
+      return new Response(BRAND_LOGO, {
+        headers: { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age=3600' }
       });
     }
 
@@ -311,7 +368,7 @@ export default {
         return new Response(csvContent, {
           headers: {
             'Content-Type': 'text/csv; charset=utf-8',
-            'Content-Disposition': 'attachment; filename="kundikamado-nl-intents.csv"',
+            'Content-Disposition': 'attachment; filename="smokeykamado-nl-intents.csv"',
             'Cache-Control': 'no-store'
           }
         });

@@ -63,6 +63,15 @@ async function ensureTables(db) {
     );
   `).run();
 
+  const columns = await db.prepare('PRAGMA table_info(purchase_intents)').all();
+  if (!columns.results.some(column => column.name === 'shipping_amount_eur')) {
+    try { await db.prepare('ALTER TABLE purchase_intents ADD COLUMN shipping_amount_eur REAL NOT NULL DEFAULT 0').run(); }
+    catch (error) {
+      const updated = await db.prepare('PRAGMA table_info(purchase_intents)').all();
+      if (!updated.results.some(column => column.name === 'shipping_amount_eur')) throw error;
+    }
+  }
+
   await db.prepare(`
     CREATE TABLE IF NOT EXISTS abandoned_carts (
       session_id TEXT PRIMARY KEY,
@@ -206,6 +215,22 @@ async function recordPurchaseIntent(env, intentData) {
       items.filter(i => i.type === 'kamado').length > 1) {
     throw new Error('Ongeldige contactgegevens of winkelwagen.');
   }
+  // Validate live availability at submission, including carts saved before a stock edit.
+  for (const item of items.filter(i => i.type === 'kamado')) {
+    const key = item.modelKey || String(item.id || '').replace(/^kamado_/, '');
+    if (Object.prototype.hasOwnProperty.call(INVENTORY_SEED.stock, key)) {
+      const available = await getInventory(db);
+      const total = Object.values(available.stock[key] || {}).reduce((sum, qty) => sum + qty, 0);
+      if (total < item.qty) throw new Error('Dit model is niet meer beschikbaar. Kies een ander model.');
+    } else {
+      // Legacy clients without a catalog key still need a known model, not an arbitrary size.
+      const legacyKey = String(item.sizeInch || intentData.sizeInch || '');
+      const legacyModel = legacyKey === '18' ? (/basic/i.test(item.name) ? '18_basic' : '18_premium') : legacyKey;
+      if (!Object.prototype.hasOwnProperty.call(INVENTORY_SEED.stock, legacyModel)) throw new Error('Onbekend model.');
+      const available = await getInventory(db);
+      if (Object.values(available.stock[legacyModel] || {}).reduce((sum, qty) => sum + qty, 0) < item.qty) throw new Error('Dit model is niet meer beschikbaar.');
+    }
+  }
   const accessories = items.filter(i => i.type === 'accessory');
   // Same session, customer and basket represent the same intent, including retries.
   const fingerprint = JSON.stringify([intentData.sessionId, cust.email.trim().toLowerCase(), items]);
@@ -216,7 +241,8 @@ async function recordPurchaseIntent(env, intentData) {
   const kamadoItem = items.find(i => i.type === 'kamado') || {};
   const kamadoPrice = (kamadoItem.price || 0) * (kamadoItem.qty || 1);
   const accPrice = accessories.reduce((sum, a) => sum + (a.price || 0) * (a.qty || 1), 0);
-  const totalAmount = Math.round((kamadoPrice + accPrice) * 100) / 100;
+  const shippingPrice = shippingAmount(items);
+  const totalAmount = Math.round((kamadoPrice + accPrice + shippingPrice) * 100) / 100;
 
   const modelName = kamadoItem.name || 'Accessories only';
   const sizeInch = String(kamadoItem.name ? (kamadoItem.sizeInch || intentData.sizeInch || '') : '');
@@ -236,14 +262,14 @@ async function recordPurchaseIntent(env, intentData) {
       postal_code, city, country, source, landing_page,
       initial_color, final_color, model_name, size_inch,
       items_json, accessories_json,
-      kamado_price_eur, accessories_price_eur, total_amount_eur,
+      kamado_price_eur, accessories_price_eur, total_amount_eur, shipping_amount_eur,
       payment_method_intent, notification_sent
     ) VALUES (
       ?, ?, ?, ?, ?, ?,
       ?, ?, ?, ?, ?,
       ?, ?, ?, ?,
       ?, ?,
-      ?, ?, ?,
+      ?, ?, ?, ?,
       ?, 0
     )
   `).bind(
@@ -267,6 +293,7 @@ async function recordPurchaseIntent(env, intentData) {
     kamadoPrice,
     accPrice,
     totalAmount,
+    shippingPrice,
     intentData.paymentMethod || 'ideal'
   ).run();
 
@@ -305,6 +332,7 @@ async function recordPurchaseIntent(env, intentData) {
   // 4. Send email notification asynchronously
   try {
     const notifyResult = await sendPurchaseIntentNotification(env, {
+      shippingAmountEur: shippingPrice,
       id: intentId,
       sessionId: intentData.sessionId,
       paymentMethod: intentData.paymentMethod,
@@ -407,7 +435,7 @@ async function getMarketStats(db) {
     { key: 'Burgundy', name: 'Burgundy (Bordeaux Rood)', hex: '#781d2e', count: 0, share: 0 },
     { key: 'Blue', name: 'Blue (Marine Blauw)', hex: '#1b3f75', count: 0, share: 0 },
     { key: 'Green', name: 'Green (Bosgroen)', hex: '#235338', count: 0, share: 0 },
-    { key: 'Orange', name: 'Orange (Craft Oranje)', hex: '#df5417', count: 0, share: 0 },
+    { key: 'Orange', name: 'Orange (Smokey Oranje)', hex: '#df5417', count: 0, share: 0 },
     { key: 'Beige', name: 'Beige (Zand Beige)', hex: '#d6cbb6', count: 0, share: 0 },
     { key: 'Yellow', name: 'Yellow (Warm Okergeel)', hex: '#dca326', count: 0, share: 0 }
   ];
@@ -496,7 +524,7 @@ async function exportIntentsCsv(db) {
 
   const headers = [
     'Datum', 'Model', 'Kleur', 'Accessoires', 'Kamado Prijs EUR', 'Accessoires Prijs EUR',
-    'Totaal EUR', 'Email', 'Naam', 'Telefoon', 'Regio', 'Bron (Source)', 'Landing Page'
+    'Verzending EUR', 'Totaal EUR', 'Email', 'Naam', 'Telefoon', 'Regio', 'Bron (Source)', 'Landing Page'
   ];
 
   const escapeCsv = (val) => {
@@ -522,6 +550,7 @@ async function exportIntentsCsv(db) {
       escapeCsv(accStr),
       escapeCsv(r.kamado_price_eur),
       escapeCsv(r.accessories_price_eur),
+      escapeCsv(r.shipping_amount_eur),
       escapeCsv(r.total_amount_eur),
       escapeCsv(r.email),
       escapeCsv(r.name),

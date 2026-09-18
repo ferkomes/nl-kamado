@@ -1,5 +1,5 @@
 /**
- * CraftKamado Netherlands - Market Test Admin Dashboard Logic (English)
+ * SmokeyKamado Netherlands - Market Test Admin Dashboard Logic (English)
  */
 
 (function() {
@@ -76,9 +76,41 @@
       const data = await resp.json();
       hideAuthOverlay();
       renderDashboard(data);
+      await loadInventory();
     } catch (err) {
       console.error("Error loading dashboard:", err);
     }
+  }
+
+  async function loadInventory() {
+    const status = document.getElementById('inventoryStatus');
+    try {
+      const response = await fetch('/api/inventory', { cache: 'no-store' });
+      if (!response.ok) throw new Error('Could not load inventory');
+      const data = await response.json();
+      const body = document.querySelector('#inventoryTable tbody');
+      body.replaceChildren();
+      for (const [modelKey, colors] of Object.entries(data.stock)) {
+        for (const [color, quantity] of Object.entries(colors)) {
+          const row = document.createElement('tr');
+          const model = document.createElement('td'); model.textContent = modelKey.replace('_', ' ');
+          const name = document.createElement('td'); name.textContent = color + ' / ' + data.colors[color].pantone;
+          const quantityCell = document.createElement('td');
+          const input = document.createElement('input'); input.type = 'number'; input.min = '0'; input.max = '100000'; input.step = '1'; input.value = quantity; input.style.width = '90px'; input.setAttribute('aria-label', modelKey + ' ' + color + ' quantity'); quantityCell.appendChild(input);
+          const action = document.createElement('td'); const button = document.createElement('button');button.className = 'btn btn-secondary';button.textContent = 'Save';action.appendChild(button);
+          button.addEventListener('click', async () => {
+            if (!input.reportValidity() || input.value === '') return;
+            button.disabled = true;
+            try {
+              const result = await fetch('/api/inventory', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + adminToken }, body: JSON.stringify({modelKey,color,quantity:Number(input.value),previousQuantity:quantity}) });
+              if (!result.ok) throw new Error(result.status === 409 ? 'Stock changed in another session. Refresh and try again.' : 'Inventory update failed');
+              await loadInventory(); status.textContent = 'Saved: ' + modelKey + ' / ' + color + ' = ' + input.value;
+            } catch(error) { status.textContent = error.message; button.disabled = false; }
+          });
+          row.append(model,name,quantityCell,action);body.appendChild(row);
+        }
+      }
+    } catch(error) { status.textContent = error.message; }
   }
 
   function renderDashboard(data) {
