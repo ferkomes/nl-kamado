@@ -22,8 +22,8 @@
       sizeInch: "18",
       modelCode: "CK-18BAS",
       badge: { nl: "Compact & Scherp Geprijsd", en: "Compact & Best Value" },
-      price: 599,
-      origPrice: 749,
+      price: 549,
+      rrp: 599,
       grate: "Ø 38.5 cm",
       body: "45.0 cm (17.7″)",
       people: { nl: "2–4 personen", en: "2–4 people" },
@@ -41,8 +41,8 @@
       sizeInch: "18",
       modelCode: "CK-18PREM",
       badge: { nl: "Compact & Familie", en: "Compact & Family" },
-      price: 699,
-      origPrice: 898,
+      price: 799,
+      rrp: 849,
       grate: "Ø 38.5 cm",
       body: "45.0 cm (17.7″)",
       people: { nl: "2–4 personen", en: "2–4 people" },
@@ -60,8 +60,8 @@
       sizeInch: "21",
       modelCode: "CK-21ALL",
       badge: { nl: "Veelzijdig & Familie+", en: "Versatile & Family+" },
-      price: 889,
-      origPrice: 1108,
+      price: 949,
+      rrp: 1099,
       grate: "Ø 47.5 cm",
       body: "53.6 cm (21.1″)",
       people: { nl: "4–6 personen", en: "4–6 people" },
@@ -79,8 +79,8 @@
       sizeInch: "23",
       modelCode: "CK-23BEST",
       badge: { nl: "Premium / Air Hinge", en: "Premium / Air Hinge" },
-      price: 1019,
-      origPrice: 1178,
+      price: 1049,
+      rrp: 1199,
       grate: "Ø 52.3 cm",
       body: "59.5 cm (23.5″)",
       people: { nl: "4–8 personen (Ideaal)", en: "4–8 people (Optimal)" },
@@ -98,8 +98,8 @@
       sizeInch: "27",
       modelCode: "CK-27PRO",
       badge: { nl: "Reus / HoReCa & Heavy Duty", en: "Giant / Commercial & Heavy Duty" },
-      price: 1319,
-      origPrice: 1410,
+      price: 1199,
+      rrp: 1399,
       grate: "Ø 57.5 cm",
       body: "67.7 cm (26.6″)",
       people: { nl: "6–12+ personen", en: "6–12+ people" },
@@ -883,8 +883,9 @@
     if (elName) elName.textContent = mName;
     const elPrice = document.getElementById("activeModelPrice");
     if (elPrice) elPrice.textContent = formatEur(model.price);
-    const elOrig = document.getElementById("activeModelOrigPrice");
-    if (elOrig) elOrig.textContent = formatEur(model.origPrice);
+    document.getElementById('modelPriceLabel').textContent = currentLang === 'en' ? 'Introductory price' : 'Introductieprijs';
+    document.getElementById('modelRrp').textContent = (currentLang === 'en' ? 'RRP: ' : 'Adviesprijs: ') + formatEur(model.rrp);
+    document.getElementById('modelRrpNote').textContent = currentLang === 'en' ? 'RRP is the recommended list price set by SmokeyKamado, not a previous selling price.' : 'Adviesprijs is de door SmokeyKamado vastgestelde aanbevolen lijstprijs, geen eerdere verkoopprijs.';
     const elDesc = document.getElementById("activeModelDesc");
     if (elDesc) elDesc.textContent = mDesc;
     const elAddPrice = document.getElementById("addBtnPrice");
@@ -966,9 +967,13 @@
         card.querySelector(".product-edition").firstChild.textContent = "BASIC / PREMIUM ";
         card.href = (inventory && quantityFor('18_premium') <= 0 ? '/kamados/18-basic' : '/kamados/18-premium') + (en ? '?lang=en' : '');
         card.querySelector('.product-included').textContent = inventory && quantityFor('18_basic') <= 0 ? 'Premium' : inventory && quantityFor('18_premium') <= 0 ? 'Basic' : 'Basic / Premium';
-        card.querySelector('.product-bottom strong').textContent = (en ? 'From ' : 'Vanaf ') + (inventory && quantityFor('18_basic') <= 0 ? '€699' : '€599');
+        card.querySelector('.product-bottom strong').textContent = (en ? 'From ' : 'Vanaf ') + (inventory && quantityFor('18_basic') <= 0 ? '€799' : '€549');
         card.querySelector('.product-audience').textContent = en ? '2–4 people · Choose your edition' : '2–4 personen · Kies je uitvoering';
       }
+      const displayed = KAMADO_MODELS[isSmall ? (inventory && quantityFor('18_basic') <= 0 ? '18_premium' : '18_basic') : key];
+      card.querySelector('.card-price-label').textContent = en ? 'Introductory price' : 'Introductieprijs';
+      card.querySelector('.card-rrp').textContent = (en ? 'RRP: ' : 'Adviesprijs: ') + formatEur(displayed.rrp);
+
     });
   }
 
@@ -1031,8 +1036,8 @@
       cart = JSON.parse(localStorage.getItem("craft_nl_cart") || "[]");
       if (!Array.isArray(cart)) cart = [];
       cart.forEach(item => {
-        const product = item.type === 'kamado' ? KAMADO_MODELS[item.modelKey] : ACCESSORIES.find(a => a.id === item.accessoryId);
-        if (product) item.image = product.image;
+        const product = item.type === 'kamado' ? KAMADO_MODELS[item.modelKey || String(item.id || '').replace(/^kamado_/, '')] : ACCESSORIES.find(a => a.id === item.accessoryId);
+        if (product) { item.image = product.image; if (item.type === "kamado") item.price = product.price; }
         if (item.type === 'kamado') { item.colorId = null; item.colorName = 'Not selected'; item.colorDisplayName = currentLang === 'en' ? 'Colour not selected' : 'Kleur niet gekozen'; }
         if (typeof item.name === "string") item.name = item.name.replace(/CraftKamado|KundiKamado/g, "SmokeyKamado");
         if (typeof item.colorDisplayName === "string") item.colorDisplayName = item.colorDisplayName.replace("Craft ", "Smokey ");

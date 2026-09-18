@@ -1756,3 +1756,8 @@ html { scroll-padding-top: 145px; }
 .buying-guide table { width:100%; border-collapse:collapse; min-width:520px; }
 .buying-guide th, .buying-guide td { padding:14px 10px; text-align:left; border-bottom:1px solid var(--border-color); }
 .buying-guide p { max-width:850px; line-height:1.7; margin:20px 0; }
+
+.intro-price-label, .card-price-label { color:var(--accent-primary, #ef9b52); font-size:14px; font-weight:700; }
+.rrp-price, .card-rrp { color:var(--text-muted, #adb5aa); font-size:15px; text-decoration:none; }
+.rrp-note { display:block; width:100%; font-size:12px; line-height:1.5; color:var(--text-muted, #adb5aa); }
+.model-pricing .intro-price-label { width:100%; }

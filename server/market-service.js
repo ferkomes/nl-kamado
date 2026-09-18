@@ -219,6 +219,7 @@ async function recordPurchaseIntent(env, intentData) {
   for (const item of items.filter(i => i.type === 'kamado')) {
     const key = item.modelKey || String(item.id || '').replace(/^kamado_/, '');
     if (Object.prototype.hasOwnProperty.call(INVENTORY_SEED.stock, key)) {
+      item.price = PRODUCT_PAGES['/kamados/' + key.replace('_', '-')].price;
       const available = await getInventory(db);
       const total = Object.values(available.stock[key] || {}).reduce((sum, qty) => sum + qty, 0);
       if (total < item.qty) throw new Error('Dit model is niet meer beschikbaar. Kies een ander model.');
@@ -227,6 +228,7 @@ async function recordPurchaseIntent(env, intentData) {
       const legacyKey = String(item.sizeInch || intentData.sizeInch || '');
       const legacyModel = legacyKey === '18' ? (/basic/i.test(item.name) ? '18_basic' : '18_premium') : legacyKey;
       if (!Object.prototype.hasOwnProperty.call(INVENTORY_SEED.stock, legacyModel)) throw new Error('Onbekend model.');
+      item.price = PRODUCT_PAGES['/kamados/' + legacyModel.replace('_', '-')].price;
       const available = await getInventory(db);
       if (Object.values(available.stock[legacyModel] || {}).reduce((sum, qty) => sum + qty, 0) < item.qty) throw new Error('Dit model is niet meer beschikbaar.');
     }
@@ -401,11 +403,11 @@ async function getMarketStats(db) {
 
   // 3. Models breakdown (18 Basic / 18 Premium / 21 / 23 / 27)
   const targetModels = [
-    { key: '18_basic', name: '18″ Basic', size: '18', price: 599, count: 0, share: 0 },
-    { key: '18_premium', name: '18″ Premium', size: '18', price: 699, count: 0, share: 0 },
-    { key: '21', name: '21″ Veelzijdig', size: '21', price: 889, count: 0, share: 0 },
-    { key: '23', name: '23″ Bestseller', size: '23', price: 1019, count: 0, share: 0 },
-    { key: '27', name: '27″ HoReCa Reus', size: '27', price: 1319, count: 0, share: 0 }
+    { key: '18_basic', name: '18″ Basic', size: '18', price: 549, count: 0, share: 0 },
+    { key: '18_premium', name: '18″ Premium', size: '18', price: 799, count: 0, share: 0 },
+    { key: '21', name: '21″ Veelzijdig', size: '21', price: 949, count: 0, share: 0 },
+    { key: '23', name: '23″ Bestseller', size: '23', price: 1049, count: 0, share: 0 },
+    { key: '27', name: '27″ HoReCa Reus', size: '27', price: 1199, count: 0, share: 0 }
   ];
 
   const allIntentsRows = await db.prepare(`SELECT * FROM purchase_intents ORDER BY created_at DESC`).all();

@@ -35,7 +35,7 @@ function productPageHtml(html, product, productPath) {
     text('activeModelName', name);
     text('activeModelDesc', description);
     text('activeModelPrice', '€' + product.price);
-    text('activeModelOrigPrice', '€' + product.origPrice);
+    text('modelRrp', 'Adviesprijs: €' + product.rrp);
     text('addBtnPrice', '€' + product.price);
     text('specGrate', product.grate);
     text('specBody', product.body);

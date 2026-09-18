@@ -23,10 +23,16 @@ Geïsoleerde Nederlandse vraagvalidatie-applicatie (~1 maand markt-test) voor **
 ## 💶 Prijsstructuur (EUR)
 
 ### Kamado Modellen (All-Inclusive)
-- **18″ Compact**: €699,- *(adviesprijs €898,-)*
-- **21″ Veelzijdig**: €889,- *(adviesprijs €1.108,-)*
-- **23″ Bestseller**: €1.019,- *(adviesprijs €1.178,-)*
-- **27″ HoReCa Reus**: €1.319,- *(adviesprijs €1.410,-)*
+| Modell | RRP / ajánlott listaár | Bevezető ár |
+| --- | --- | --- |
+| 18″ Basic | €599 | €549 |
+| 18″ Premium | €849 | €799 |
+| 21″ Premium | €1.099 | €949 |
+| 23″ Premium | €1.199 | €1.049 |
+| 27″ Premium | €1.399 | €1.199 |
+
+A kosár és a szerver a bevezető árral számol. Az RRP a SmokeyKamado által megadott ajánlott listaár, nem korábbi eladási ár; nincs áthúzás vagy kedvezményszázalék. A mentett kamado-kosarak betöltéskor az aktuális árat kapják. A korábban rögzített érdeklődéseket nem árazzuk át.
+
 
 *Alle modellen worden All-Inclusive geleverd met zwaar onderstel met wielen, inklapbare zwarte HDPE zijtafels, Strong Hinge (18″ Premium) of Air Hinge (21″/23″/27″), Divide & Conquer systeem, gietijzeren rooster, aslade, beschermhoes en rookhout-inlaat.*
 
@@ -160,7 +166,7 @@ A `https://nl-kamado.ferkomes.workers.dev` továbbra is tesztelhető, de `noinde
 ### Premium collectie — vernieuwde winkelpagina
 
 Bovenaan staan vier Premium modellen (18, 21, 23 en 27 inch). De 18-inch kaart
-is de Premium van €699; Basic maakt geen deel uit van deze collectie.
+is de Premium van €799; Basic maakt geen deel uit van deze collectie.
 Op kleinere schermen is de rij met aanraken of pijlen horizontaal te verschuiven.
 Een kaart opent de eigen productpagina met kleurkeuze en winkelwagenknop.
 De vijftien meegeleverde onderdelen staan in het Nederlands en Engels op de pagina.
@@ -203,7 +209,7 @@ az admin ütközést jelez, nem írja felül csendben a másik módosítást.
 A színek nem kattinthatók; az érdeklődéshez **Not selected** kerül színként.
 Az érdeklődés beküldése nem valódi eladás és nem von le készletet. A darabszámot
 az adminban kell frissíteni tényleges fogyáskor; külső raktárszinkron jelenleg nincs.
-18″-nál Basic (€599) és Premium (€699) között lehet váltani, külön megosztható URL-lel.
+18″-nál Basic (€549) és Premium (€799) között lehet váltani, külön megosztható URL-lel.
 A Basic nem kap Premium felszereltségi ígéretet. Az eurós eladási árak változatlanok.
 
 A gyártói képek referenciafotók: a tényleges Premium RVS aslade/wood-chip feeder

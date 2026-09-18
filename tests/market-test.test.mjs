@@ -225,7 +225,7 @@ describe('SmokeyKamado Netherlands Market Test Suite', () => {
       assert.equal(intentRow.final_color, 'Blue');
       assert.equal(intentRow.source, 'Facebook Ad');
       assert.equal(intentRow.postal_code, '1015 CR');
-      assert.equal(intentRow.total_amount_eur, 1346);
+      assert.equal(intentRow.total_amount_eur, 1376);
 
       const session = await db.prepare('SELECT * FROM market_sessions WHERE session_id = ?').bind(sessionId).first();
       assert.equal(session.reached_intent, 1);
@@ -260,7 +260,7 @@ describe('SmokeyKamado Netherlands Market Test Suite', () => {
       assert.equal(stats.kpis.checkout, 1);
       assert.equal(stats.kpis.purchaseIntent, 1);
       assert.equal(stats.kpis.conversionPct, 1.0);
-      assert.equal(stats.kpis.potentialRevenue, 1346);
+      assert.equal(stats.kpis.potentialRevenue, 1376);
 
       // Models breakdown: 18 Basic, 18 Premium, 21, 23, 27
       assert.ok(stats.models);
@@ -296,7 +296,7 @@ describe('SmokeyKamado Netherlands Market Test Suite', () => {
       const text = await res.text();
       assert.ok(text.includes('pieter@example.nl'));
       assert.ok(text.includes('Facebook Ad'));
-      assert.ok(text.includes('1346'));
+      assert.ok(text.includes('1376'));
     });
   });
 
@@ -501,7 +501,7 @@ describe('Regression: isolated owner notifications and reliable demand counts', 
     const result = await (await submit(payload())).json();
     assert.equal(result.ok, true);
     const row = await env.DB.prepare('SELECT * FROM purchase_intents WHERE id = ?').bind(result.intentId).first();
-    assert.equal(row.total_amount_eur, 1118);
+    assert.equal(row.total_amount_eur, 1148);
     assert.equal(row.accessories_price_eur, 0);
     assert.equal(row.final_color, 'Blue');
     assert.equal(row.notification_sent, 0);
@@ -683,7 +683,7 @@ test('delivery rates are server-calculated for 18/27 and accessories, included i
   // Exercise an existing database upgrade without discarding an existing record.
   db._sqlite.exec(`CREATE TABLE purchase_intents (id TEXT PRIMARY KEY, session_id TEXT, created_at TEXT, email TEXT, name TEXT, phone TEXT, postal_code TEXT, city TEXT, country TEXT, source TEXT, landing_page TEXT, initial_color TEXT, final_color TEXT, model_name TEXT, size_inch TEXT, items_json TEXT, accessories_json TEXT, kamado_price_eur REAL, accessories_price_eur REAL, total_amount_eur REAL, payment_method_intent TEXT, notification_sent INTEGER, notification_error TEXT);
   INSERT INTO purchase_intents(id,total_amount_eur) VALUES('legacy',42);`);
-  for (const [key, size, price, shipping] of [['18_basic','18',599,99], ['27','27',1319,129], ['accessory','',49,7.95]]) {
+  for (const [key, size, price, shipping] of [['18_basic','18',549,99], ['27','27',1199,129], ['accessory','',49,7.95]]) {
     let notification;
     const env = { DB: db, MAIL_SENDER: { fetch: async (_url, options) => {
       notification = JSON.parse(options.body);
@@ -786,4 +786,21 @@ test('kamado details lead with the selected product while the homepage keeps acc
   const home = await (await worker.fetch(new Request('https://smokeykamado.nl/'), {})).text();
   assert.ok(home.indexOf('id="collectie"') < home.indexOf('id="accessoires"'));
   assert.ok(home.indexOf('id="accessoires"') < home.indexOf('id="modellen"'));
+});
+
+test('introductory prices and RRP agree across all product pages and override stale submitted prices', async () => {
+  const worker = (await import('../worker.js')).default;
+  const env={DB:createMockD1()};
+  for (const [key,price,rrp] of [['18_basic',549,599],['18_premium',799,849],['21',949,1099],['23',1049,1199],['27',1199,1399]]) {
+    for(const lang of ['nl','en']) {
+      const html=await (await worker.fetch(new Request('https://smokeykamado.nl/kamados/'+key.replace('_','-')+'?lang='+lang),env)).text();
+      assert.match(html,new RegExp('id="activeModelPrice">€'+price));
+      assert.match(html,new RegExp('id="modelRrp">(?:RRP|Adviesprijs): €'+rrp));
+      assert.match(html,/id="modelPriceLabel">(?:Introductieprijs|Introductory price)/);
+    }
+    const response=await worker.fetch(new Request('https://smokeykamado.nl/api/market-test/purchase-intent',{method:'POST',body:JSON.stringify({sessionId:'intro-'+key,customer:{email:'test@example.nl'},items:[{id:'kamado_'+key,modelKey:key,type:'kamado',name:key,sizeInch:key.slice(0,2),price:1,qty:1}]})}),env);
+    assert.equal(response.status,200);
+    const row=await env.DB.prepare('SELECT kamado_price_eur,total_amount_eur FROM purchase_intents WHERE session_id=?').bind('intro-'+key).first();
+    assert.equal(row.kamado_price_eur,price);assert.equal(row.total_amount_eur,price+(key==='27'?129:99));
+  }
 });
