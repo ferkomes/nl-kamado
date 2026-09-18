@@ -1733,7 +1733,6 @@ html { scroll-padding-top: 145px; }
 .basic-notice { margin-bottom: 1.5rem; }
 .edition-basic #all-inclusive, .edition-basic #faq { display: none; }
 
-.launch-notice { padding: 10px 20px; text-align: center; background: #e9e5db; color: #20392e; font-size: 13px; line-height: 1.5; }
 
 /* Product images and optional click-to-load YouTube media share one gallery. */
 .media-stage { position: relative; min-width: 0; }
